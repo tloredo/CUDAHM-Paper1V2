@@ -61,7 +61,7 @@ But for inference based on \emph{given} observations, only the actually availabl
 Implementing inference in a manner that requires specifying only the member likelihood functions, rather than the sampling distributions, is a better fit to the nature of astronomical survey catalog data summaries than an implementation requiring unique specification of the lowest level sampling distributions.
 
 A widely-used approach for posterior sampling in the context of two-level hierarchical models is the \textit{Metropolis-within-Gibbs} (MWG) algorithm, where the $\theta$ population parameters and the $\psi_i$ member properties are sampled in separate, alternating steps.
-First, the member properties are sampled by holding the population parameters constant, then the population parameters are sampled by holding the member properties fixed.
+First, the member properties are sampled by holding the population parameters fixed, then the population parameters are sampled by holding the member properties fixed.
 These steps may each be implemented with Metropolis or Metropolis-Hastings algorithms; their sequential combination amounts to Gibbs sampling on the joint space.
 Explicitly, the steps are:
 \begin{align}
@@ -93,12 +93,12 @@ An important example is inference of \emph{number-size distributions} (also know
 Here the object characteristics are distance, $r_i$, and luminosity, $L_i$ (amount of energy emitted per unit time).
 The observable is flux (rate of energy flow per unit area normal to the line of sight, per unit time, at the telescope), $F_i$, related to the characteristics via the inverse-square law, $F_i = L_i/(4\pi r_i^2)$ (or its cosmological generalization).
 
-The DAG in the middle panel depicts conditional density estimation, where the properties $\psi_i$ are comprised of precisely measurable predictors, $\xi_i$, that, together with the population parameters $\theta$, specify the PDF for observables, $\obsv_i$; the data provide likelihood functions for the $\obsv_i$.
+The DAG in the middle panel depicts conditional density estimation, where the properties $\psi_i$ are comprised of precisely measurable predictors (covariates), $\xi_i$, that, together with the population parameters $\theta$, specify the PDF for observables, $\obsv_i$; the data provide likelihood functions for the $\obsv_i$.
 An important example is inference of a \emph{luminosity function}, which describes the population distribution for the luminosities of a class of sources (say, a stellar or galaxy type).
-If the PDF for luminosity is $\lpdf(L;\theta)$, and the distances to objects may be precisely measured (say, via spectroscopic redshift data), then the PDF for the flux observable for a source at distance $d$ is $4\pi d^2 \lpdf(4\pi d^2 F; \theta)$ (in Euclidean space).
+If the PDF for luminosity is $\lpdf(L;\theta)$, and the distances to objects may be precisely measured (say, via spectroscopic redshift data), then by a simple change of variables the PDF for the flux observable for a source at distance $d$ is $4\pi d^2 \lpdf(4\pi d^2 F; \theta)$ (in Euclidean space).
 We treat a more complicated version of this problem below, where the object sample is subject to flux-dependent selection effects.
 
-As a final example, the DAG in the right panel depicts conditional density estimation with measurement error, i.e., uncertainty in the predictors, with a classical measurement error structure (data distributions conditional on latent predictor values).
+As a final example, the DAG in the right panel depicts conditional density estimation with measurement error (i.e., uncertainty in the predictors), with a classical measurement error structure (data distributions conditional on latent predictor values).
 A wide variety of astronomical data analysis problems have this structure.
 \cite{K+12-DustSEDs} describes a noteworthy example studying how the spectrum of infrared emission from heated interstellar dust depends on properties of the dust grains; this is one of the specific problems motivating CUDAHM.
 Earlier studies, based on maximum likelihood estimates of dust properties (ignoring measurement error), found a surprising negative correlation between dust temperature and a spectral index parameter indicating how the dust properties tilt the infrared spectrum away from a black body spectrum.
@@ -112,7 +112,7 @@ Accounting for measurement error \emph{reversed the sign} of the inferred correl
 To sample according to Eq.~\ref{eq:psi_sampling}, we use the robust adaptive Metropolis (RAM) algorithm devised by \cite{vihola2012robust}.
 It works by adaptively refining a Metropolis algorithm proposal distribution during the sampling process until a target mean acceptance rate $\alpha_*$ is reached.
 CUDAHM currently uses a multivariate normal distribution as the proposal $q$, and sets the target mean acceptance probability to a default value of $\alpha_{*}=0.4$.
-Adaptation involves using new samples to adjust the proposal covariance matrix in a manner that decays with time along the Markov chain in a way to guarantee correct asymptotic sampling.
+Adaptation involves using new samples to adjust the proposal covariance matrix in a manner that decays with time along the Markov chain so as to guarantee correct asymptotic sampling.
 Specifically, adjustments enter with a decaying weight, $\eta_{n}=n^{-2/3}$, where $n$ is the iteration number along the Markov chain.
 
 Following \cite{vihola2012robust}, let $S_{1}$ be the identity matrix and $X_{1}$ some point in the space to be sampled for which the target density $\pi(X_{1})>0$.
@@ -127,5 +127,5 @@ where $I$ is an identity matrix.
 The solution for $S_{n}$ is unique as it is the Cholesky factor of the right hand side.
 \end{enumerate}
 
-\enote{Provide some further details about the CUDAHM architecture, e.g., how random number generation is handled, and classes/structures available for passing information to/from the GPU.}
+\enote{Provide some further details about the CUDAHM architecture, e.g., how users must structure their code, classes/structures available for passing information to/from the GPU, how random number generation is handled, etc..}
 
