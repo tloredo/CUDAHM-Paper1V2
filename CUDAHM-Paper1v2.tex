@@ -1,0 +1,179 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx,psfrag,epsf}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumerate}
+\usepackage{natbib}
+\usepackage{dcolumn}
+
+\usepackage{color}
+\usepackage{url}
+
+%\pdfminorversion=4
+% NOTE: To produce blinded version, replace "0" with "1" below.
+\newcommand{\blind}{0}
+
+% DON'T change margins - should be 1 inch all around.
+\addtolength{\oddsidemargin}{-.5in}%
+\addtolength{\evensidemargin}{-.5in}%
+\addtolength{\textwidth}{1in}%
+\addtolength{\textheight}{1.3in}%
+\addtolength{\topmargin}{-.8in}%
+
+%To reset the counters at the start of each section and prefix the numbers by the section number
+%(Based on: http://en.wikibooks.org/wiki/LaTeX/Tips_and_Tricks#Grouping_Figure.2FEquation_Numbering_by_Section)
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+\DeclareMathOperator\erf{erf}
+
+\def\sharedaffiliation{
+\end{tabular} \begin{tabular}{c}}
+
+\newcommand{\missingref}{\textcolor{red}{REF}}
+\newcommand{\fix}[1]{\textcolor{red}{#1}}
+\newcommand{\dd}{\textrm{d}}
+% From the C++ FAQ:
+\newcommand{\Cpp}{C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\tiny\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\tiny\bf +}}
+
+% Do NOT hyphenate all-caps words:
+%\uchyph=0
+\hyphenation{CUDA CUDAHM}
+
+
+\newcolumntype{d}[1]{D{.}{.}{#1}} \newcolumntype{t}[1]{D{-}{\times}{#1}}
+
+\newcommand{\assm}{\,|\,}
+\newcommand{\mlike}{\ell}
+\newcommand{\ppar}{\theta}  % pop'n parameters
+\newcommand{\obsv}{\mathcal{O}}  % observables
+\newcommand{\psivec}{\boldsymbol{\psi}}
+\newcommand{\Dvec}{\boldsymbol{D}}
+\newcommand{\lfunc}{\phi}  % or \Phi or \varphi or...
+\newcommand{\clfunc}{\Phi}
+\newcommand{\lpdf}{f}
+\newcommand{\lcdf}{F}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ONLY NEEDED FOR DRAFTS (delete or comment for submission):
+
+% Macro for an "editorial note"; uncomment the 2nd definition to
+% produce a version without notes (put it in main doc if desired).
+\newcommand\enote[1]{{$\bullet\bullet\bullet$}{\sl [#1]}{$\bullet\bullet\bullet$}}
+%\renewcommand\enote[1]{\relax}
+
+% Marginal note (just a redef of \marginpar or \marginparodd).
+% Uncomment the 2nd definition to produce a version without notes (put it 
+% in main doc if desired).
+% Could use \footnotesize for a bigger font.
+% The \hspace enables hyphenation of the 1st word.
+\setlength{\marginparwidth}{.85in}
+\newcommand\mnote[1]{\-\marginpar[\raggedleft\scriptsize\hspace*{0pt}#1]%
+{\raggedright\scriptsize\hspace*{0pt}#1}}
+%\renewcommand\mnote[1]{\relax}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%===============================================================================
+\begin{document}
+
+\def\spacingset#1{\renewcommand{\baselinestretch}%
+{#1}\small\normalsize} \spacingset{1}
+
+\if0\blind
+{
+  \title{\bf CUDAHM:  GPU-Accelerated Bayesian Inference for Single-Plate Hierarchical Models}
+  \author{J\'anos M. Szalai-Gindl\thanks{
+    \textit{This work was supported by the Hungarian Scientific Research Fund via grant OTKA~NN~114560.  Budav\'ari, Kelly, and Loredo gratefully acknowledge the NSF-funded Statistical and Applied Mathematical Sciences Institute (SAMSI) for support for visits to SAMSI, where this project originated. Loredo's effort was additionally supported by NSF grant AST-1312903.}}\hspace{.2cm}\\
+    Department of Physics of Complex Systems,\\
+    E\"otv\"os Lor\'and University\\
+	and\\	
+	Department of Applied Mathematics \& Statistics,\\    
+    The Johns Hopkins University\\
+    and \\
+    Tam\'as Budav\'ari \\
+    Department of Applied Mathematics \& Statistics,\\
+    The Johns Hopkins University\\
+    and \\
+    Thomas J. Loredo \\
+    Cornell Center for Astrophysics \& Planetary Science,\\
+    Cornell University \\
+    and \\
+    Brandon C. Kelly \\
+    Department of Physics,\\
+    Broida Hall, University of California\\
+    and \\
+    Istv\'an Csabai\\
+    Department of Physics of Complex Systems,\\
+    E\"otv\"os Lor\'and University\\
+    and \\
+    L\'aszl\'o Dobos\\
+    Department of Physics of Complex Systems,\\
+    E\"otv\"os Lor\'and University}
+    
+  \maketitle
+} \fi
+
+\if1\blind
+{
+  \bigskip
+  \bigskip
+  \bigskip
+  \begin{center}
+    {\LARGE\bf CUDAHM:  GPU-Accelerated Bayesian Inference for Two-Level Hierarchical Models}
+\end{center}
+  \medskip
+} \fi
+
+\bigskip
+\begin{abstract}
+\enote{Omit bracketed text if the abstract really needs to be $<$ 200 words; check recent issues about this.}\\
+We describe CUDAHM, a \Cpp\ framework for hierarchical Bayesian inference with single-plate parametric graphical models that uses graphics processing units (GPUs) to accelerate computations, enabling deployment on very large datasets.
+CUDAHM exploits conditional independence between instances of a plate, which enables massively parallel exploration of the replication parameter space using the single instruction, multiple data (SIMD) architecture of GPUs.
+It provides support for constructing Metropolis-within-Gibbs samplers that iterate between GPU-acclerated robust adaptive Metropolis (RAM) sampling of plate-level parameters conditional on upper-level parameter values, and Metropolis-Hastings sampling of upper-level parameters on the host central processing unit (CPU) conditional on the GPU results.
+The GPU computations are implemented using the Compute Unified Device Architecture (CUDA).
+CUDAHM is motivated by measurement error problems in astronomy, where density estimation and linear and nonlinear regression problems must be addressed for populations of thousands to millions of objects whose features are measured with possibly complex uncertainties.
+{\em 
+[We briefly describe an example of regression with measurement error:  inferring the distribution of properties of dust throughout a star-forming region from noisy observations of the infrared light in multiple passbands (filter colors).
+This is a problem where the likelihood functions for the plate-level parameters are complex; CUDAHM duplicates an earlier analysis with a speedup $\sim \times X$.
+We also use CUDAHM for luminosity function estimation, a widespread problem in astronomy that requires density deconvolution (demixing) using noisy data subject to thinning or truncation.]
+}
+We demonstrate accurate GPU-accelerated parametric conditional density deconvolution for simulated populations of $10^6$ objects in about two hours using a single NVIDIA Tesla K40c GPU.
+\end{abstract}
+
+\noindent%
+{\it Keywords:}
+Hierarchical Bayesian models, Metropolis-within-Gibbs sampling, parallel computing, astrostatistics, graphical processing units (GPUs)
+\vfill
+
+\newpage \spacingset{1.45} % DON'T change the spacing!
+
+\input{Intro}
+
+\input{Design}
+
+%===============================================================================
+\section{Example: Dust properties in a star-forming region}
+\label{sec:dust}
+
+\enote{Add material here for Brandon's dust SED example; we should probably try to save this for the A\&C version.}
+%===============================================================================
+
+% These probably should be merged:
+\input{LumFuncA}
+\input{LumFuncB}
+
+\input{Summary}
+
+\input{Supp}
+
+\bibliographystyle{agsm}
+
+\bibliography{CUDAHM}
+
+\end{document}
