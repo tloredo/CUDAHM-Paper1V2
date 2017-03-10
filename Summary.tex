@@ -1,9 +1,8 @@
 %===============================================================================
 \section{Summary}
-\label{sec:summary} We have presented a general hierarchical Bayesian method to estimate the probability distribution of population-level parameters and characteristics.
-We have applied this framework for the luminosity distribution function of galaxies.
-The method not only estimates the parameters of the luminosity function, but is also capable of recalibrating noisy observations.
-Since the luminosities of galaxies are independent, the problem is massively parallelizable on the GPU.
-Our implementation shows linear scaling with both, the number of Markov chain iterations and the number of objects, which makes it applicable to real data sets of size $10^{8}$.
-We have made simplifications to the model that need to be mended when the method is used for real astronomical data, namely, correct cosmological distances have to be used.
-Less trivial extensions to the model are folding in the spatial correlation of galaxies (large scale structure of the universe) and the distance--luminosity correlations (evolution of galaxy brightness).
+\label{sec:summary}
+
+We have described a usefully general \Cpp\ framework for massively parallel implementation of simple hierarchical Bayesian models.
+We have applied this framework to estimating luminosity functions of objects measured with uncertainty, and subject to (quantified) selection effects.
+Our implementation shows linear scaling with both, the number of Markov chain iterations and the number of objects, which makes it applicable to real data sets of size up to $10^{8}$ using modest-sized clusters of GPUs.
+

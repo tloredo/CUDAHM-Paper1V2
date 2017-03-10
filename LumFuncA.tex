@@ -2,65 +2,74 @@
 \section{Example: Luminosity function estimation}
 \label{sec:lum_func}
 
-As a simple but useful demonstration of CUDAHM, we here consider luminosity function estimation, a parametric conditional density estimation problem arising across many areas of astronomy.
+The CUDAHM distribution contains some example code implementing basic hierarchical models, such as the normal-normal model, and a realistically complicated astrophysical example handling regression with classical measurement error, with nonlinear models (the interstellar dust problem described above).
 
+As a somewhat more complicated application of CUDAHM, we here consider luminosity function estimation, a parametric conditional density estimation problem arising across many areas of astronomy.
+We highlight this example, both because of its ubiquity across astronomy, and to illustrate the generality of CUDAHM.
+We describe luminosity function estimation for a model including, not only measurement error, but also \emph{selection effects}.
+The selection effects make the joint distribution structure more complicated than the conditional density estimation DAG shown in Fig.~\ref{fig:DAGs}; in particular, there are two plates (corresponding to detected and undetected objects).
+However, the likelihood function can be manipulated to have a conditional dependence structure similar to that of a single-plate DAG, allowing straightforward implementation of the model using CUDAHM.
+
+%-------------------------------------------------------------------------------
+\subsection{Astronomical background}
+\label{sec:LF-astro}
 
 \enote{Introductory content here was moved from Janos's intro.}
 
-Fundamental observables for localized astronomical sources include position (both direction on the celestial sphere, and distance, $d$, in some chosen coordinate system), and apparent brightness, quantified in terms of flux, $F$, the electromagnetic power incident on a surface normal to the line-of-sight.
+The fundamental observables for localized astronomical sources include position (both direction on the celestial sphere, and distance, $r$, in some chosen coordinate system), and apparent brightness, quantified in terms of flux, $F$.
 Astronomers use these observables to study demographic properties of many classes of sources, including stars and galaxies of various types, minor planets (such as asteroids), and explosive transients (gamma-ray bursts, supernovae).
-For concreteness, here we focus on observations of nearby galaxies, for which distance may be measured using spectroscopy to find the \emph{redshift}, $z$, of spectral lines (i.e., the fractional shift in wavelength).
-Due to the cosmological expansion, for relatively nearby galaxies, the distance is proportional to redshift,
+For concreteness, here we focus on observations of nearby galaxies, for which distance may be measured by using spectroscopy to find the \emph{redshift}, $z$, of spectral lines (i.e., their fractional shift in wavelength from laboratory values).
+Due to the cosmological expansion, for relatively nearby galaxies, distance is proportional to redshift,
 \[
-d = \frac{cz}{H_0},
-\label{eq:d-z}
+r = \frac{cz}{H_0},
+\label{eq:r-z}
 \]
-where $c$ denotes the speed of light, and $H_0$ is Hubble's constant, describing the current expansion rate of the universe, with $H_0 \approx 70$~km~s$^{-1}$~Mpc$^{-1}$ (with Mpc denoting megaparsecs).
+where $c$ denotes the speed of light, and $H_0$ is Hubble's constant, measuring the current expansion rate of the universe, with $H_0 \approx 70$~km~s$^{-1}$~Mpc$^{-1}$ (with Mpc denoting megaparsecs).
 $H_0$ is measured with a precision of several percent, and spectroscopic redshifts for nearby galaxies can be measured to sub-percent precision.
-For simplicity, here we consider distances to be precisely measured, via redshifts.
-Often, astronomers use redshift as a proxy for distance.
+For simplicity, here we consider distances to be precisely measured, via spectroscopic redshifts.
+Often, astronomers use redshift directly as a proxy for distance.
 
 A fundamental intrinsic characteristic of a source is its \emph{luminosity} (emitted power), $L$, a measure of its intrinsic (vs.\ apparent) brightness.
-For nearby galaxies (i.e., for distances where space is very nearly Euclidean), the inverse-square law relates $L$ to the observables $F$ and $d$:
+For nearby galaxies (i.e., for distances where space is very nearly Euclidean), the inverse-square law relates $L$ to the observables $F$ and $r$:
 \[
 F=\frac{L}{4\pi r^2}.
 \label{eq:inv-sqr}
 \]
 The \emph{luminosity function}, $\lfunc(L, d)$, describes the distribution of intrinsic brightness for a population at a specified distance (or redshift).
-It may be defined as the intensity function for a point process, i.e., as specifying the expected number of galaxies per unit volume at distance $d$, per unit luminosity interval.
-If we denote the spatial number density of galaxies at distance $d$ by $n(d)$, then $n(d) = \int dL\, \lfunc(L, d)$.
-The \emph{luminosity distribution} for galaxies at distance $d$ (a PDF) is then
+It is typically defined as the intensity function for a point process, i.e., as specifying the expected number of galaxies per unit volume at distance $d$, per unit luminosity interval.
+If we denote the spatial number density of galaxies at distance $r$ by $n(r)$, then $n(r) = \int dL\, \lfunc(L, r)$.
+The \emph{luminosity distribution} for galaxies at distance $r$ (a PDF) is then
 \[
-\lpdf(L,d) = \frac{\lfunc(L, d)}{n(d)}.
+\lpdf(L,r) = \frac{\lfunc(L, r)}{n(r)}.
 \label{eq:lpdf}
 \]
-Note that $\lfunc(L,d)$ and $\lpdf(L,d)$ specify \emph{conditional} distributions, i.e., distributions for $L$ at a given $d$.%
-\footnote{Authors vary on the definition of the luminosity function, some defining it as done here, and others using ``luminosity function'' to denote what we here call the luminosity distribution.}
+Note that $\lfunc(L,r)$ and $\lpdf(L,r)$ specify \emph{conditional} distributions, i.e., distributions for $L$ at a given $r$.%
+\footnote{Authors vary on the definition of the luminosity function, many defining it as done here, and others using ``luminosity function'' to denote what we here call the luminosity distribution.}
 
 The galaxy luminosity function carries valuable information about the formation and evolution of galaxies, therefore it is an important target of inquiry in astronomy.
 CUDAHM can address parametric luminosity function inference; we denote the luminosity function parameters by $\theta$.
 For simplicity we here focus on a homogeneous population, so that the distance dependence may be ignored, but it is important in many applications.
-The following development is straightforward to generalize to account for distance dependence.
+The following development is straightforward to generalize to account for models with distance dependence in the luminosity function.
 
 %-------------------------------------------------------------------------------
 \subsection{Parametric luminosity function models}
 \label{sec:lfmodels}
 
 For most cosmic populations, including galaxies, the luminosity function falls very steeply with increasing luminosity.
-The canonical starting point for parametric modeling of luminosities is the \emph{Schecter function},
-\[
+The canonical starting point for parametric modeling of luminosity distributions is the \emph{Schecter function},
+\begin{equation}
 \lfunc(L;\theta) =
   \frac{A}{L_*} \left(\frac{L}{L_*}\right)^{\beta} e^{-L/L_*},
 \label{eq:schecter}
-\]
+\end{equation}
 where the parameters $\theta = (L_*,\beta, A)$ comprise a luminosity scale, $L_*$, a power law index, $\beta$, and an amplitude, $A$.%
 \footnote{There are varying conventions for parameterizing the amplitude of the Schecter function.
 In this parameterization, $A$ has units of space density.
 In similar parameterizations, $A$ is often denoted $\lfunc_*$, although it neither has the units of $\lfunc$, nor is it equal to $\lfunc(L_*)$, as the symbol might misleadingly suggest.}
 The form of the Schecter function would seem to imply a luminosity distribution that is a gamma distribution (with shape parameter $\alpha = \beta - 1$).
-However, the observed samples of many populations follow Eq.~\ref{eq:schecter} with $\beta$ in the interval $(-2,-1)$, in which case the integral of Eq.~\ref{eq:schecter} over $L$ is infinite, and the luminosity distribution is formally improper (with $\alpha$ outside of the allowed range for the gamma distribution).
+However, the observed samples of many populations follow Eq.~\ref{eq:schecter} with $\beta$ in the interval $(-2,-1)$, in which case the integral of $\lfunc(L;\theta)$ over $L$ is infinite, and the luminosity distribution is formally improper (with $\alpha$ outside of the allowed range for the gamma distribution).
 Low-luminosity sources are unobservable (due to noise and background, discussed below), so in practice the \emph{observable} luminosity function is truncated at low luminosities, and the impropriety is often ignored.
-But the actual luminosity function must fall less steeply or turn over or be cut off at low luminosities.
+But the actual luminosity function must rise less quickly with decreasing $L$ (corresponding to $\beta$ becoming larger than $-1$) or be cut off at low luminosities (corresponding to there being a minimum galaxy size).
 
 \enote{Perhaps move some of the following details to an appendix?}
 
@@ -85,9 +94,9 @@ C(\beta,u,l) =
 \end{equation} 
 Note that as $l\rightarrow 0$, the BB1 distribution becomes a gamma distribution (if $\beta > -1$).
 %Also, in our computational implementation, the condition $\beta=-1$ of the first case is $-1.001<\beta<-0.999$.
-We designed the BB1 distribution to have smooth power law break behavior, yet also have an analytical normalization constant;
+We designed the BB1 distribution to have smooth power law break behavior at low $L$, yet also have an analytical normalization constant;
 it is proper for $\beta > -2$.
-It can also be sampled from using a modification of a widely-used algorithm used to sample from the gamma distribution (REF).
+It can also be sampled from using a straightforward modification of a widely-used algorithm for sampling from the gamma distribution (REF).
 These properties make it useful for simulation experiments.
 
 \enote{Specify param values for the fig in the next paragraph, and relabel the cutoff region in the fig with $e^{L/u}$.}

@@ -3,7 +3,7 @@
 \label{sec:intro}
 
 Bayesian inference with graphical models has rapidly grown in popularity and sophistication since the emergence of Markov chain Monte Carlo (MCMC) algorithms for Bayesian computation nearly three decades ago.
-The work we report here focuses on models with classic, simple graphical structures---directed acyclic graphs (DAGs) with a single plate, i.e., a single level of replication of random variables at the lower level of a hierarchical model.
+The work we report here focuses on models with classic, simple graphical structures---directed acyclic graphs (DAGs) that typically have a single plate, i.e., a single level of replication of random variables at the lower level of a hierarchical model.
 Our work aims to extend the range of application of Bayesian graphical modeling in the direction of increased dataset size, rather than in the direction of increased graphical complexity.
 
 We are motivated by measurement error problems in astronomy: density estimation with measurement error (density deconvolution, or demixing, often of a \emph{conditional} density), and linear and nonlinear regression with measurement errors in both predictors and response.
@@ -20,7 +20,7 @@ Single-plate hierarchical models can account for measurement error in many astro
 
 %Section~\ref{sec:app_models_methods} describes the applied models and methods in general.
 
-In the following section (Sec.~\ref{sec:design}), we describe the architecture of the CUDAHM framework, which is motivated by a common computational structure underlying example hierarchical models arising in measurement error problems in astronomy. 
+In the following section (Sec.~\ref{sec:design}), we describe the design of the CUDAHM framework, which is motivated by a common computational structure underlying example hierarchical models arising in measurement error problems in astronomy. 
 %\enote{Perhaps add a brief section (\S~3) treating Brandon's nonlinear regression with measurement error problem; perhaps he'd be willing to write it; a very brief summary of it is in \S~2 and may suffice, with Brandon's example presented in the followup A\&C paper.}
 In Sec.~\ref{sec:lum_func}, we describe a common astronomical data analysis problem: inferring the luminosity distribution of a class of objects from distance and flux observations of a sample subject to selection effects and measurement error.
 Such problems may be modeled using latent, thinned marked point processes observed with measurement error; we show that the resulting likelihood function can be cast in a form mirroring the computational structure of single-plate graphical models, enabling implementation with CUDAHM.
