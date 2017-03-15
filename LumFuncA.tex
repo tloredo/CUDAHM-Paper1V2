@@ -14,16 +14,16 @@ However, the likelihood function can be manipulated to have a conditional depend
 \subsection{Astronomical background}
 \label{sec:LF-astro}
 
-\enote{Introductory content here was moved from Janos's intro.}
+%\enote{Introductory content here was moved from Janos's intro.}
 
 The fundamental observables for localized astronomical sources include position (both direction on the celestial sphere, and distance, $r$, in some chosen coordinate system), and apparent brightness, quantified in terms of flux, $F$.
 Astronomers use these observables to study demographic properties of many classes of sources, including stars and galaxies of various types, minor planets (such as asteroids), and explosive transients (gamma-ray bursts, supernovae).
 For concreteness, here we focus on observations of nearby galaxies, for which distance may be measured by using spectroscopy to find the \emph{redshift}, $z$, of spectral lines (i.e., their fractional shift in wavelength from laboratory values).
 Due to the cosmological expansion, for relatively nearby galaxies, distance is proportional to redshift,
-\[
+\begin{equation}
 r = \frac{cz}{H_0},
-\label{eq:r-z}
-\]
+\label{eq:H0}
+\end{equation}
 where $c$ denotes the speed of light, and $H_0$ is Hubble's constant, measuring the current expansion rate of the universe, with $H_0 \approx 70$~km~s$^{-1}$~Mpc$^{-1}$ (with Mpc denoting megaparsecs).
 $H_0$ is measured with a precision of several percent, and spectroscopic redshifts for nearby galaxies can be measured to sub-percent precision.
 For simplicity, here we consider distances to be precisely measured, via spectroscopic redshifts.
@@ -31,20 +31,24 @@ Often, astronomers use redshift directly as a proxy for distance.
 
 A fundamental intrinsic characteristic of a source is its \emph{luminosity} (emitted power), $L$, a measure of its intrinsic (vs.\ apparent) brightness.
 For nearby galaxies (i.e., for distances where space is very nearly Euclidean), the inverse-square law relates $L$ to the observables $F$ and $r$:
-\[
+\begin{equation}
 F=\frac{L}{4\pi r^2}.
 \label{eq:inv-sqr}
-\]
+\end{equation}
 The \emph{luminosity function}, $\lfunc(L, d)$, describes the distribution of intrinsic brightness for a population at a specified distance (or redshift).
 It is typically defined as the intensity function for a point process, i.e., as specifying the expected number of galaxies per unit volume at distance $d$, per unit luminosity interval.
 If we denote the spatial number density of galaxies at distance $r$ by $n(r)$, then $n(r) = \int dL\, \lfunc(L, r)$.
-The \emph{luminosity distribution} for galaxies at distance $r$ (a PDF) is then
-\[
+The \emph{luminosity PDF} for galaxies at distance $r$ is then
+\begin{equation}
 \lpdf(L,r) = \frac{\lfunc(L, r)}{n(r)}.
 \label{eq:lpdf}
-\]
+\end{equation}
 Note that $\lfunc(L,r)$ and $\lpdf(L,r)$ specify \emph{conditional} distributions, i.e., distributions for $L$ at a given $r$.%
-\footnote{Authors vary on the definition of the luminosity function, many defining it as done here, and others using ``luminosity function'' to denote what we here call the luminosity distribution.}
+\footnote{Authors vary on the definition of the luminosity function, many defining it as done here, and others using ``luminosity function'' to denote what we here call the luminosity PDF.}
+Using (\ref{eq:inv-sqr}), the \emph{flux PDF} for galaxies at distance $r$, denoted $\rho(F,r)$, can be found by a change of variables from $L$ to $F$, giving
+\begin{equation}\label{eq:rho-f}
+\rho(F,r) = 4\pi r^2 f(4\pi r^2 F, r).
+\end{equation}
 
 The galaxy luminosity function carries valuable information about the formation and evolution of galaxies, therefore it is an important target of inquiry in astronomy.
 CUDAHM can address parametric luminosity function inference; we denote the luminosity function parameters by $\theta$.
@@ -71,9 +75,9 @@ However, the observed samples of many populations follow Eq.~\ref{eq:schecter} w
 Low-luminosity sources are unobservable (due to noise and background, discussed below), so in practice the \emph{observable} luminosity function is truncated at low luminosities, and the impropriety is often ignored.
 But the actual luminosity function must rise less quickly with decreasing $L$ (corresponding to $\beta$ becoming larger than $-1$) or be cut off at low luminosities (corresponding to there being a minimum galaxy size).
 
-\enote{Perhaps move some of the following details to an appendix?}
+%\enote{Perhaps move some of the following details to an appendix?}
 
-For some populations, an increase in the power law index is in fact observed at low luminosities.
+For some populations, an increase in the power law index (i.e., flattening of the slope) is in fact observed at low luminosities.
 For example, the stellar initial mass function (related to the stellar luminosity function, and fit with similar models) has a low-mass (low-luminosity) index that increases by $\approx 1$ (REF).
 Motivated by such observations, and to keep the luminosity distribution proper, we here adopt a ``break-by-one'' (BB1) generalization of the Schecter function, with $\lfunc \propto L^{\beta+1}$ at low luminosities, and thus integrable for $\beta > -2$.
 Specifically, the BB1 model has a luminosity distribution with three parameters: a mid-luminosity power law index, $\beta$, and two parameters defining the mid-luminosity range, $(l, u)$, with $l < u$ and  $u$ playing the role of $L_*$ in the Schecter function, and the power law index smoothly breaking to $\beta+1$ as $L$ decreases below $l$.
@@ -99,17 +103,15 @@ it is proper for $\beta > -2$.
 It can also be sampled from using a straightforward modification of a widely-used algorithm for sampling from the gamma distribution (REF).
 These properties make it useful for simulation experiments.
 
-\enote{Specify param values for the fig in the next paragraph, and relabel the cutoff region in the fig with $e^{L/u}$.}
-
-We define a BB1 luminosity function by multiplying the BB1 luminosity distribution by the galaxy spatial number density, $n(d)$, which is simply a constant, $n$, for a homogeneous population.
-Fig.~\ref{fig:lumfunc} shows an example BB1 luminosity function, with $\beta = ?$, and $(l,u) = ?, ?$ (with arbitrary units); it is plotted both with linear axes, and in $\log$-$\log$ space, where the varying power law behavior is evident.
+We define a BB1 luminosity function by multiplying the BB1 luminosity distribution by the galaxy spatial number density, which is simply a constant, $n$, for a homogeneous population.
+Fig.~\ref{fig:lumfunc} shows an example BB1 luminosity function, with $\beta = 1.5$, and $(l,u) = (5\times 10^{10}, 5\times 10^{12})$ in dimensionless units; it is plotted both with $\log$-linear axes, and with $\log$-$\log$ axes, where the varying power law behavior is evident.
 The local power law index corresponds to the slope, $G(L)$, in $\log$-$\log$ space, defined by
 \begin{equation}
 	G(L) \equiv \frac{\dd\log{\lpdf}}{\dd\log{L}} = \frac{L}{\lpdf} \frac{\dd \lpdf}{\dd L} = g(L) + \beta - \frac{L}{u},
 \end{equation}
 with
 \begin{equation}
-	g(L) = \frac{(L/l) e^{-L/l}}{\left(1 - e^{-L/l}\right)}.
+	g(L) = \frac{L}{l}\cdot\frac{1}{e^{L/l} - 1}.
 \end{equation}
 Evidently, $g(L) \rightarrow 0$ for $L \gg l$ and $g(L) \rightarrow 1$ for $L \ll l$.
 Thus the logarithmic slope, $G(L)$, corresponds to an exponential cutoff at large $L$, and at small $L$, a slope of $\beta + 1$.
@@ -124,36 +126,89 @@ When $u\gg l$, so there is a range where $L\gg l$ but $L\ll u$, the logarithmic 
 		\includegraphics{fig/lumfunc_loglog}
 		\caption{}
 	\end{subfigure}
-	\caption{Typical shape of the probability distribution of galaxy luminosities on a log-linear scale (Panel a) and on log-log scale (Panel b). On Panel~b the blue verticals show the lower limit $l$ and upper limit $u$ as defined in Eq.~\ref{eq:lumPDF}. The scaling of the ``break-by-one'' power law is different in the three regions defined by the limits. Parameters or the distribution are listed in Tab.~\ref{tab:sum_est}.}
+	\caption{Example BB1 truncated broken power law PDF, on a log-linear scale (a) and on log-log scale (b), with parameters $(u,l) = (5\times 10^{10}, 5\times 10^{12})$ in dimensionless units, and $\beta = -1.5$.
+	In Panel~b the blue verticals show the lower limit $l$ and upper limit $u$ of the region where the power law slope is $\approx\beta$.}
 	\label{fig:lumfunc}
 \end{figure}
 
-Finally, the BB1 cumulative luminosity distribution function is 
+Finally, the BB1 cumulative distribution function is 
 \begin{equation}
 \label{eq:lumCDF} 
 \lcdf(L ; \theta) = 
   C(\theta)
   \left[ \Gamma(\beta + 1) - \gamma\left(\beta + 1, L/u\right) - \frac{\Gamma(\beta + 1)-\gamma\left(\beta + 1, L\cdot\left(\frac{1}{u}+\frac{1}{l}\right)\right)}{\left(1 + \frac{u}{l}\right)^{\beta + 1}} \right],
 \end{equation}
-where $\Gamma(\cdot)$ and $\gamma(\cdot, \cdot)$ represent the gamma function and the upper incomplete gamma function, respectively.
+where $\Gamma(\cdot)$ and $\gamma(\cdot, \cdot)$ denote the gamma function and the upper incomplete gamma function, respectively.
 
 %-------------------------------------------------------------------------------
-\subsection{Selection effects and measurement error}
+\subsection{Modeling survey selection effects and measurement error}
 \label{sec:slxn+err}
 
+Astronomers estimate luminosity functions and other astronomical distributions using data compiled in \emph{survey catalogs}: tables of estimates (including uncertainties) of object properties, accompanied by a description of selection criteria for the survey that produced the catalog.
+Catalogs are derived data products; they summarize information in more complex and voluminous raw datasets, such as large collections of images or time series.
+The nature of astronomical catalog data makes their analysis differ in some respects from analyses of survey data familiar in the statistical survey sampling literature.
 
-Luminosity functions are estimated using galaxy samples containing flux and distance measurements.
-Flux measurements are affected by photon noise that is often dominated by Poisson fluctuations in the photon counting rate.
+Flux measurements are affected by measurement error that is often dominated by Poisson fluctuations in the photon counting rate, including fluctuations from astrophysical and instrumental backgrounds.
 The measurement error thus approximately scales with the square root of the flux, and is fractionally greater at low flux than at high flux.
-At low fluxes, fluctuations from astrophyisical and instrumental backgrounds can produce false source detections.
+At low fluxes, photons from the backgrounds can produce false source detections.
 To prevent this, surveys adopt detection criteria to strongly mitigate against false detections.
-A simple, representative criterion is to accept sources only if the estimated flux is $\nu$ times the flux uncertainty, with $\nu \approx 5$ so that the probability for false detection is low even for large catalogs.
+A simple, representative criterion is to accept sources only if the estimated flux is $\nu$ times the flux uncertainty, with $\nu \approx 5$ so that the probability for false detection is low even for large catalogs (i.e., there is strong control of the family-wise error rate).
+
 Detection criteria introduce \emph{selection effects} into catalogs.
 Most obviously, faint sources (low luminosity sources, or distant high luminosity sources) are excluded; the observable luminosity function is a thinned version of the actual luminosity function.
-More subtly, measurement error distorts the shape of the observable distribution, a phenomenon well known in the density deconvolution literature, and also recognized in the astronomical literature, where it is sometimes called \emph{Eddington bias}, in reference to early discussions of the distortion by Eddington and Jeffreys (REFS).
-They noted that an object with a measured flux of $\hat F$ is more likely to be an object with a true flux $F < \hat F$ than one with $F > \hat F$, because the former are more numerous than the latter in most astronomical settings.
-Selection effects can exacerbate the distortion in the vicinity of a flux threshold, with measurement error and the falling flux distribution conspiring to scatter more below-threshold sources into the observed sample than above-threshold sources out of it, a phenomenon dubbed \emph{Malmquist bias} \citep{binney1998galactic} (although the term is used inconsistently).
+In addition, \emph{measurement error} more subtly but significantly distorts the shape of the observable distribution, a phenomenon well known in the density deconvolution literature, and also recognized in the astronomical literature, where it is sometimes called \emph{Eddington bias}, in reference to early discussions of the distortion by Eddington and Jeffreys (REFS).
+They noted that an object with a measured flux of $\hat F$ is more likely to be an object with a true flux $F < \hat F$ than one with $F > \hat F$, even when measurement errors have a symmetric distribution, because dim sources are more numerous than bright sources in most astronomical settings.
+Selection effects can exacerbate the distortion in the vicinity of a flux threshold, with measurement error and the falling flux distribution conspiring to scatter more below-threshold sources into the observed sample than above-threshold sources out of it, a component of what astronomers call \emph{Malmquist bias} \citep{binney1998galactic} (although the term is used inconsistently).
 Hierarchical modeling can automatically account for such thinning and distortion, in a manner that adapts to the shape of the luminosity function; this is a major motivation for its increasing popularity in astrostatistics.
+
+We have developed a framework for modeling astronomical survey data using \emph{thinned latent marked point process models}.
+Measurement error is handled in a hierarchical Bayesian manner, by introducing latent member property parameters, with catalog estimates understood as describing member likelihood functions for the properties.
+We model the population distribution of the latent member properties using marked point processes.
+We model selection effects through thinning of the latent point process.
+We outline the framework here as it applies to luminosity function estimation and similar problems, in contexts where a marked Poisson point process is an appropriate model for the latent member properties. 
+
+A somewhat subtle aspect of the problem is the tie between measurement error and selection effects.
+In astronomical surveys, the raw data are scanned to find candidate objects.
+For candidates that pass detection criteria, the data are used to estimate source properties.
+The same underlying data are used both for selection (detection) and measurement; these tasks are not independent, as is assumed in many statistical survey methods.
+Ignoring the dependence can corrupt inferences (REF?).
+
+Object detection is typically implemented via a scanning procedure.
+For example, for image data, a fixed aperture may be scanned over the image; a specified algorithm determines if an object is present, e.g., by comparing the estimated flux in the aperture to a threshold value (set by background and noise estimates), or by fitting an image model to the data in the aperture and comparing the fitted amplitude to a threshold.
+For time series data, a window may be scanned over the time series, with an object detected if the estimated flux is above a threshold.
+If an object is detected, its properties are estimated, e.g., by a likelihood or weighted least squares calculation, with estimation results summarized in the catalog.
+
+Fig.~\ref{fig:ScanMark} illustrates the framework and its relationship to catalog construction.
+We split the object property parameter space into scan and mark components.
+The scan component corresponds to the dimensions over which the detection scan operates; 
+%(e.g., two-dimensional position for image data, or arrival time for time series data).
+the mark component corresponds to the remaining dimensions.
+For our galaxy luminosity function example, the scan component is the two-dimensional position of the galaxy image on the detector (corresponding to its direction on the sky), and the mark component is the galaxy luminosity and distance, or equivalently, flux and distance (in a more complex case, the mark component might include color and morphological parameters).
+In the figure, the dots (red) indicate the true properties of seven galaxies; the blue contours depict likelihood functions for the properties, based on noisy image data.
+The gray region at the bottom is bounded above by the position-dependent detection threshold; an object is detected only if its best-fit (maximum likelihood) flux is above the threshold.
+Here two of the seven galaxies are not detected.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=.8\textwidth]{fig/ScanMarkPtProcess-Thin+Err}
+\end{center}
+\caption{Depiction of thinned latent marked point process model for catalog data produced by an astronomical survey.
+Object properties are split into a scanned subset and a mark subset.
+Dots (red) show latent (true) values for an object's properties.
+Contours (blue) depict member likelihood functions from analysis of the raw survey data; catalogs provide summaries of these for detected objects.
+Gray region at bottom depicts the non-detection region; candidates with estimated mark values below a varying threshold are rejected.
+$\delta$ and $\Delta$ denote sizes of detection and nondetection intervals.}
+\label{fig:ScanMark}
+\end{figure}
+
+
+
+
+
+
+
+
+
 
 
 %-------------------------------------------------------------------------------
