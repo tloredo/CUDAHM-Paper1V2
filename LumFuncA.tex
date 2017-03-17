@@ -46,14 +46,18 @@ The \emph{luminosity PDF} for galaxies at distance $r$ is then
 Note that $\lfunc(L,r)$ and $\lpdf(L,r)$ specify \emph{conditional} distributions, i.e., distributions for $L$ at a given $r$.%
 \footnote{Authors vary on the definition of the luminosity function, many defining it as done here, and others using ``luminosity function'' to denote what we here call the luminosity PDF.}
 Using (\ref{eq:inv-sqr}), the \emph{flux PDF} for galaxies at distance $r$, denoted $\rho(F,r)$, can be found by a change of variables from $L$ to $F$, giving
-\begin{equation}\label{eq:rho-f}
+\begin{equation}\label{eq:fluxPDF}
 \rho(F,r) = 4\pi r^2 f(4\pi r^2 F, r).
 \end{equation}
 
 The galaxy luminosity function carries valuable information about the formation and evolution of galaxies, therefore it is an important target of inquiry in astronomy.
-CUDAHM can address parametric luminosity function inference; we denote the luminosity function parameters by $\theta$.
-For simplicity we here focus on a homogeneous population, so that the distance dependence may be ignored, but it is important in many applications.
-The following development is straightforward to generalize to account for models with distance dependence in the luminosity function.
+CUDAHM can address parametric luminosity function inference; this section provides an example as a demonstration of CUDAHM's capability and flexibility.
+In the next subsection, we describe a useful parametric family of luminosity functions.
+Then we present a framework for modeling astronomical survey data using thinned latent marked point process models, developing it specifically for luminosity function inference.
+The last subsection in this section presents a simulation study demonstrating CUDAHM luminosity function inference for simulated populations with sizes up to $10^6$.
+
+% For simplicity we here focus on a homogeneous population, so that $n(r)$ is considered fixed (constant with respect to volume measure).
+% The following development is straightforward to generalize to account for models with distance dependence in the luminosity function.
 
 %-------------------------------------------------------------------------------
 \subsection{Parametric luminosity function models}
@@ -168,13 +172,13 @@ We model selection effects through thinning of the latent point process.
 We outline the framework here as it applies to luminosity function estimation and similar problems, in contexts where a marked Poisson point process is an appropriate model for the latent member properties. 
 
 A somewhat subtle aspect of the problem is the tie between measurement error and selection effects.
-In astronomical surveys, the raw data are scanned to find candidate objects.
+In astronomical surveys, the raw data are searched to find candidate objects.
 For candidates that pass detection criteria, the data are used to estimate source properties.
 The same underlying data are used both for selection (detection) and measurement; these tasks are not independent, as is assumed in many statistical survey methods.
-Ignoring the dependence can corrupt inferences (REF?).
+Ignoring the dependence can corrupt inferences \enote{L04 here or below?}.
 
 Object detection is typically implemented via a scanning procedure.
-For example, for image data, a fixed aperture may be scanned over the image; a specified algorithm determines if an object is present, e.g., by comparing the estimated flux in the aperture to a threshold value (set by background and noise estimates), or by fitting an image model to the data in the aperture and comparing the fitted amplitude to a threshold.
+For example, for image data, a fixed aperture may be scanned over the image; a detection algorithm determines if an object is present, e.g., by comparing the estimated flux in the aperture to a threshold value (set by background and noise estimates), or by fitting an image model to the data in the aperture and comparing the fitted amplitude to a threshold.
 For time series data, a window may be scanned over the time series, with an object detected if the estimated flux is above a threshold.
 If an object is detected, its properties are estimated, e.g., by a likelihood or weighted least squares calculation, with estimation results summarized in the catalog.
 
@@ -201,12 +205,216 @@ $\delta$ and $\Delta$ denote sizes of detection and nondetection intervals.}
 \label{fig:ScanMark}
 \end{figure}
 
+We model the properties using a (latent) marked Poisson point process, i.e., a Poisson point process for the scanned parameters, and a probability density function for the mark parameters.
+For concreteness, we focus on the luminosity function example, taking the scan parameter to be object position, $x$ (a 2-vector), and the mark parameters to be flux and distance, $(F, r)$.
+We suppose that the spatial density of galaxies is approximately constant over the region probed by the survey.
+There is thus a constant Poisson intensity parameter, $\lambda$, describing the distribution of galaxies in $x$.
+We assume a BB1 luminosity PDF, independent of distance (of course, the flux PDF will depend on distance, thanks to the inverse square law).
+The flux and distance mark PDF is thus a product of PDFs, $h(r)\rho(F,r)$.
+For $\rho(F,r)$ we adopt the BB1 luminosity PDF form of (\ref{eq:lumPDF}), with parameters $\rhopar = (\beta,u,l)$, related to $\rho(F,r)$ via (\ref{eq:fluxPDF}); we write the flux PDF as $\rho(F,r; \rhopar)$ when we want to display the parameter dependence.
+For the PDF for galaxy distance, $h(r)$, the assumption of homogeneity implies
+\begin{equation}\label{eq:distPDF}
+h(r) = 
+\begin{cases} 
+    \dfrac{3r^{2}}{r_u^{3}} & \quad \text{if } 0\leq r\leq r_u,\\
+    0 & \quad \text{otherwise},
+\end{cases} 
+\end{equation}
+where $r_u$ is an upper limit on distance chosen to be beyond the surveyed volume.%
+\footnote{That is, chosen so that the most luminous galaxies of interest (i.e, with $L$ of order $u$ in the BB1 model) have fluxes comfortably below the lowest flux threshold.
+In deep surveys (reaching to very dim fluxes), cosmological considerations, including the finite age of the universe and the non-Euclidean geometry of spacetime, ameliorate the growth of $h(r)$ with $r$.}
+The population model thus has parameters $\ppar = (\lambda,\rhopar)$.
+
+We consider a case where we have precise distance measurements for the galaxies (e.g., from high-resolution spectroscopic data providing precise redshifts).
+We assume independent errors in the position and flux measurements, so the catalog contains descriptions of separate member likelihood functions for flux and position, denoted $\ell_i(F)$ and $m_i(x)$ for galaxy $i$, with $i=1$ to $N$.
+Formally, denoting the image data for detected galaxy $i$ by $D_i$, we are writing
+\begin{equation}\label{eq:xFr-like}
+p(D_i|x,F,r) = \ell_i(F)\, m_i(x)\, \delta(r - r_i),
+\end{equation}
+where the Dirac delta function factor represents the precise measurement of distance.
+We must also describe the survey's selection effects.
+These are determined by the detection threshold as a function of the scan location.
+At each scanned location, $x$, the threshold determines the set, $\dtxns_x$, of possible data (i.e., images) that would be deemed detections.
+For example, if the detection criterion is that the MLE flux estimate, $\hat F(D)$ for data $D$, must exceed a threshold $\Fth(x)$, then $\dtxns_x = \{D : \hat{F}(D) > \Fth(x)\}$.
+Reporting $\dtxns_x$, or equivalently $\Fth(x)$, then describes the selection effects.
+But we will see below that a simpler summary of the detection criteria will suffice.
 
 
+We now compute the likelihood function for the parameters, based on catalog data describing member likelihood functions and the selection effects.
+The construction we use is illustrated in Fig.~\ref{fig:ScanMark}.
+We partition the scan space into $N$ detection intervals, $\delta_i$, containing a single detected object, and $M$ nondetection intervals, $\Delta_j$, in which no candidate object passed the detection criterion.%
+\footnote{We are presuming that galaxy images are well-separated, i.e., we do not treat here the \emph{crowded field} case, where the images of distinct objects may strongly overlap.}
+The likelihood function is the product of the (conditionally independent) probabilities for these intervals.
 
+We first consider the probability for no detection in one of the $\Delta_j$ intervals.
+We break it up into subintervals of size $\delta x$, small enough that the detection threshold is approximately constant over the interval.
+The probability for seeing no detections in $\delta x$ is the sum of the probabilities for the following events (conditioned on the population parameters, $(\lambda,\rhopar)$):
+\begin{itemize}
+\item No objects have $x$ in the interval.
+\item One object has $x$ in the interval, but it produced data that were not in $\dtxns_x$.
+\item Two objects have $x$ in the interval, but both produced data that were not in $\dtxns_x$.
+\item And so on\ldots.
+\end{itemize}
+Each event is a conjunction of two simpler events, the Poisson probability for the specified number of objects lying in the interval, and the probability for not detecting any events in the interval.
+We will express the latter probability in terms of the \emph{detection efficiency} at $x$ for objects with flux $F$,
+\begin{align}\label{eq:eta-def}
+\effic(x,F) 
+  &= p(D\in\dtxns_x | F)\\
+  &= p(\hat{F}(D) > \Fth(x) | F),
+\end{align}
+where the condition $F$ denotes that an object is present with flux $F$.
+The probability for detecting an object with a given location and distance but unspecified flux and distance, given the population parameters, is then
+\begin{equation}\label{eq:p-x}
+p_x(\rhopar) = \int dr \int dF\,\rho(F,r)\, h(r)\, \effic(x,F).
+\end{equation}
+The probability for \emph{not} detecting an object with a given location is then $1-p_x(\rhopar)$.
 
+Now let $\nu$ denote the (unknown) number of objects with $x$ in $\delta x$.
+Then the probability for no detections in $\delta x$ at $x$ is
+\begin{align}\label{eq:q-exp}
+q(x) 
+  &= \sum_{\nu=0}^\infty \frac{(\lambda\delta x)^\nu}{\nu!} e^{-\lambda\delta x}
+        \left[1 - p_x(\rhopar)\right]^\nu\nonumber\\
+  &= e^{-\lambda\delta x} \sum_{\nu=0}^\infty \frac{(\lambda\delta x)^\nu \left[1 - p_x(\rhopar)\right]^\nu}{\nu!}
+          \nonumber\\
+  &= \exp\left[-\lambda\delta x p_x(\rhopar)\right].
+\end{align}
+This is the probability for no detections in a subinterval of a $\Delta_j$ interval.
+The probability for no detections across the entire interval is the product of its subinterval probabilities.
+The exponents add, so that the nondetection probability becomes
+\begin{equation}\label{eq:q-def}
+q(\Delta_j) = \exp\left[-\lambda\int_{\Delta_j}dx \int dr \int dF\,\effic(x,F)\, h(r)\, \rho(F,r)\right].
+\end{equation}
+This is just the Poisson probability for seeing no events, when the expected number of events is $\lambda$ times the fraction of the population expected to be detected in the interval, given the threshold behavior (encoded in the detection efficiency).
 
+Now consider the probability for the data associated with a detection interval, $\delta_i$; for simplicity, we assume all of these intervals are of the same size, $\delta$, in $x$.
+The probability for getting data $D_i$ from detection of an object in $\delta_i$ is the sum of the probabilities for the following events:
+\begin{itemize}
+\item One object has $x$ in the interval, and was detected producing data $D_i$.
+\item Two objects have $x$ in the interval, one of which was detected producing $D_i$, with the other undetected.
+\item And so on\ldots.
+\end{itemize}
+To simplify the calculation, let us stipulate that the detected object has values of $(x,F,r)$ in small intervals $(dx, dF, dr)$; at the end, we will account for their uncertainty via marginalization.
 
+The first case is simple; the probability for one object in the interval, having the specified properties, and being detected producing $D_i$, is
+\begin{equation}\label{eq:dtxn1}
+p_1(\lambda,\rhopar) = 
+  (\lambda \delta) e^{-\lambda \delta} 
+  \left[\frac{dx}{\delta}\, h(r)dr\, \rho(F,r;\rhopar)dF\right]
+  p(D_i\in\dtxns_x, D_i|x,F,r).
+\end{equation}
+The final probability is for a conjunction; it may be written
+\begin{equation}\label{eq:dtxn-joint}
+p(D_i\in\dtxns_x, D_i|x,F,r) = p(D_i|x,F,r)\, p(D_i\in\dtxns_x | D_i),
+\end{equation}
+where we have dropped $(x,F,r)$ from the last factor because the values of the properties are irrelevant for determining detection, once the data are in hand.
+Now note that detection is deterministic given the data, i.e., either the data correspond to a candidate meeting the detection criteria or not.
+But for a detected object, by definition the data met the criteria, so the last factor is equal to unity.
+The first factor we recognize as the member likelihood function, defined in (\ref{eq:xFr-like}).
+%\begin{equation}\label{eq:ell-m}
+%p(D_i|x,F,r) = \ell_i(F)\, m_i(x)\, \delta(r - r_i).
+%\end{equation}
+This completes the computation of $p_1(\lambda,\rhopar)$.
+
+For cases with $\nu > 1$ objects present, we will have a factor like $p_1(\lambda,\rhopar)$ for the detected object, and nondection probabilities like the $[1 - p_x(\rhopar)]$ factor appearing in the $\Delta_j$ probability derived above.
+But in addition, we have to account for not knowing which of the $\nu$ objects is detected.
+The resulting probability for the case of $\nu$ objects present can be written as follows:
+\begin{equation}\label{eq:dtxn-nu}
+\begin{split}
+p_\nu
+  &= \frac{(\lambda\delta)^\nu}{\nu!}  e^{-\lambda\delta}\\
+  &\quad \times \left(\frac{dx}{\delta}\, h(r)dr\, \rho(F,r;\rhopar)dF\right) \ell_i(F)\, m_i(x)\, \delta(r - r_i) \\
+  &\quad \times \left[1 - p_x(\rhopar)\right]^{\nu-1}\\
+  &\quad \times \nu.
+\end{split}
+\end{equation}
+Line by line, the factors are:
+\begin{itemize}
+\item the Poisson probability for $\nu$ objects being in the interval,
+\item the probability for one of them having the given properties and
+producing the detection data, $D_i$,
+\item the probability for the remaining objects not being detected,
+\item a factor of $\nu$ from summing over the possibilities for
+which of the $\nu$ objects is detected.
+\end{itemize}
+To facilitate summing the $p_\nu$ probabilities over $\nu$, we gather the $\nu$-dependent terms in (\ref{eq:dtxn-nu}) as follows:
+\begin{equation}\label{eq:dtxn-nu2}
+\begin{split}
+p_\nu
+  &= (\lambda\delta)\,  e^{-\lambda\delta}
+  \left(\frac{dx}{\delta}\, h(r)dr\, \rho(F,r;\rhopar)dF\right) \ell_i(F)\, m_i(x)\, \delta(r - r_i) \\
+  &\quad \times \frac{1}{(\nu-1)!}(\lambda\delta)^{\nu-1}
+    \left[1 - p_x(\rhopar)\right]^{\nu-1}.
+\end{split}
+\end{equation}
+Upon summing over $\nu \ge 1$, and marginalizing over the uncertain values of $(x,F,r)$, we find that the probability for the detection data in interval $\delta_i$ is
+\begin{equation}\label{eq:p-dtxn}
+p(D_i|\lambda,\rhopar) =
+  q(\delta_i)\, h(r_i)\, (\lambda\delta)\,
+  \left[\int_{\delta_i}\frac{dx}{\delta}\, m_i(x)\right]
+  \left[\int dF\, \rho(F,r_i;\rhopar)\, \ell_i(F)\right],
+\end{equation}
+where $q(\delta_i)$ is an exponential of an integral of the same form as in the nondetection probability in (\ref{eq:q-def}).
+
+The likelihood function is the product of detection probabilities (\ref{eq:p-dtxn}) and nondetection probabilities (\ref{eq:q-def}) for all of the $\delta_i$ and $\Delta_j$ intervals.
+All of these probabilities share an exponential factor resembling (\ref{eq:q-def}).
+In the product, there will be a sum of the integrals in the exponents; this corresponds to a single integral over the entire $x$ domain of the survey, of the form:
+\begin{equation}\label{eq:int3}
+\lambda\int_\Omega dx \int dr \int dF\,\effic(x,F)\, h(r)\, \rho(F,r;\rhopar),
+\end{equation}
+where $\Omega$ denotes the full range of positions surveyed (which would be measured in terms of solid angle on the sky).
+Note that the only $x$-dependent factor in the integrand is the detection efficiency.
+This lets us write the integral in simpler manner.
+Introduce the \emph{average detection efficiency},
+\begin{equation}\label{eq:aeffic}
+\aeffic(F) \equiv \frac{1}{\Omega} \int_\Omega dx \,\effic(x,F).
+\end{equation}
+Using this, (\ref{eq:int3}) can be written as a two-dimensional integral,
+\begin{equation}\label{eq:int-aeffic}
+(\lambda \Omega) \int dr \int dF\,\aeffic(F)\, h(r)\, \rho(F,r;\rhopar).
+\end{equation}
+The factor $(\lambda \Omega)$ is the expected number of objects in the surveyed region, which depends only on the $\lambda$ parameter.
+The remaining factor is the fraction of these that are detectable; it depends only on the remaining population parameters, $\rhopar$.
+
+Equation (\ref{eq:int-aeffic}) shows that the average efficiency is a kind of sufficient statistic for the survey's threshold behavior.
+Although catalog builders must determine the detection efficiency over the entire range of the survey, they need only report the lower-dimensional average efficiency for analysts.
+
+We can now write down the full likelihood function for the luminosity function parameters.
+Dropping some factors that do not depend on the parameters, the likelihood function is
+\begin{equation}\label{eq:like}
+\begin{split}
+\like(\lambda, \rhopar)
+  &= \lambda^N \exp\left[- (\lambda \Omega) \int dr \int dF\,
+            \aeffic(F)\, h(r)\, \rho(F,r;\rhopar)\right]\\
+  &\quad\times \prod_{i=1}^N h(r_i) \int dF\, \rho(F,r_i;\rhopar)\, \ell_i(F).
+\end{split}
+\end{equation}
+This likelihood function is reminiscent of that for an inhomogenous Poisson point process, whose likelihood is proportional to a product of intensity function factors, evaluated at the observed points, and an exponential whose negative argument is the integral of the intensity function over the observed domain.
+One difference is the integral over the latent observable, $F$, in the product factor; this accounts for measurement error.
+A more subtle difference is that integrand in the exponential is not the same function playing the role of the intensity function in the product factor.
+There is an average efficiency factor in the exponential, but not in the product factor.
+This is because of a feature of astronomical surveys noted earlier: the data used for characterization (estimating latent parameters) is also used for detection.
+As a result, were one to insert an efficiency factor into the product terms, the data would be doubly used.
+This appeared explicitly in our derivation; the text after (\ref{eq:dtxn-joint}).
+Some heuristic derivations of similar likelihood functions in the astronomical literature have missed this point, instead inserting an $\aeffic(F)$ factor in the detected object integrals in the likelihood function.
+This corrupts inferences; see (REF) for further discussion.
+
+Notably, the Poisson process intensity parameter, $\lambda$, appears in the likelihood function only as the power, $\lambda^N$, and multiplying the integral in the exponential.
+As a result, if we adopt a conjugate prior for $\lambda$ (a gamma distribution), we can easily compute the marginal likelihood function for the $\rhopar$ parameters.
+For simplicity, we adopt the limiting case of a uniform prior for $\lambda$.
+Marginalizing over $\lambda$ and dropping some $\rhopar$-independent terms, we find that the marginal likelihood function for $\rhopar$ takes the form
+\begin{equation}\label{eq:mlike}
+\like_m(\rhopar)
+  = \prod_{i=1}^N \int dF\, \epdf(F,r_i;\rhopar)\, \ell_i(F),
+\end{equation}
+where we have introduced an \emph{effective density} for the latent observables, $F$ and $r$,
+\begin{equation}\label{eq:epdf}
+\epdf(F,r;\rhopar) \equiv
+  \frac{h(r) \rho(F,r;\rhopar)}
+    {\int dr \int dF\,\aeffic(F)\, h(r)\, \rho(F,r;\rhopar)}.
+\end{equation}
+Equation~(\ref{eq:mlike}) resembles the likelihood function for a binomial point process, where the observations have measurement errors described by the member likelihood functions.
+But the analogy is not exact, because the effective density is not a PDF (it does not integrate to unity).
 
 
 
@@ -239,7 +447,14 @@ When generating the random sample, the luminosity is limited between $10 \leq \l
 r_\textnormal{max} = \sqrt{\frac{L_\textnormal{max}}{4 \pi T}}.
 \end{equation}
 
-As it was discussed above in Sec.~\ref{sec:intro}, the spatial distribution of galaxies is considered homogeneous, hence the density function becomes \begin{equation}\label{eq:dist_dens_func} \delta(r)= \begin{cases} \dfrac{3r^{2}}{r_{\max}^{3}} & \quad \text{if } 0\leq r\leq r_{\max}\\ 0 & \quad \text{otherwise} \end{cases} \end{equation} and the cumulative distribution function: \begin{align}\label{eq:dist_cum_func} \Delta(r)= \begin{cases} 0 & \quad \text{if } r<0\\ \dfrac{r^{3}}{r_{\max}^{3}} & \quad \text{if } 0\leq r\leq r_{\max}\\ 1 & \quad \text{if } r\geq r_{\max} \end{cases} \end{align}
+As it was discussed above in Sec.~\ref{sec:intro}, the spatial distribution of galaxies is considered homogeneous, hence the density function becomes \begin{equation}\label{eq:dist_dens_func}
+\delta(r) = 
+\begin{cases} 
+    \dfrac{3r^{2}}{r_{\max}^{3}} & \quad \text{if } 0\leq r\leq r_{\max}\\
+    0 & \quad \text{otherwise}
+\end{cases} 
+\end{equation}
+and the cumulative distribution function: \begin{align}\label{eq:dist_cum_func} \Delta(r)= \begin{cases} 0 & \quad \text{if } r<0\\ \dfrac{r^{3}}{r_{\max}^{3}} & \quad \text{if } 0\leq r\leq r_{\max}\\ 1 & \quad \text{if } r\geq r_{\max} \end{cases} \end{align}
 
 
 %-------------------------------------------------------------------------------
