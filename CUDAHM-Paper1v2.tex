@@ -12,6 +12,7 @@
 
 \usepackage{color}
 \usepackage{url}
+% \usepackage[strings]{underscore}  % to handle _ in BibTeX URLs/DOIs; but messes up fig paths
 
 %\pdfminorversion=4
 % NOTE: To produce blinded version, replace "0" with "1" below.
@@ -61,10 +62,14 @@
 \newcommand{\rhopar}{\boldsymbol{\zeta}}
 \newcommand{\dtxns}{\mathcal{D}}
 \newcommand{\Fth}{F_{\rm th}}
+\newcommand{\Fhat}{\hat{F}}
+\newcommand{\Ffid}{F_{\rm fid}}
+\newcommand{\rmax}{r_{\rm max}}
 \newcommand{\effic}{\eta}
 \newcommand{\aeffic}{\overline{\eta}}
 \newcommand{\like}{\mathcal{L}}
 \newcommand{\epdf}{\mu}
+\newcommand{\Lsol}{L_\odot}
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % ONLY NEEDED FOR DRAFTS (delete or comment for submission):
@@ -95,7 +100,9 @@
 \if0\blind
 {
   %\title{\bf CUDAHM:  GPU-Accelerated Bayesian Inference for Simple Hierarchical Models}
-  \title{\bf CUDAHM:  GPU-Accelerated Hierarchical Bayesian Modeling of Cosmic Populations}
+  %\title{\bf CUDAHM:  GPU-Accelerated Hierarchical Bayesian Modeling of Cosmic Populations}
+  \title{\bf CUDAHM:  GPU-Accelerated Hierarchical Bayesian Inference
+  with Application to Modeling Cosmic Populations}
   \author{J\'anos M. Szalai-Gindl\thanks{
     \textit{This work was supported by the Hungarian Scientific Research Fund via grant OTKA~NN~114560.  Budav\'ari, Kelly, and Loredo gratefully acknowledge the NSF-funded Statistical and Applied Mathematical Sciences Institute (SAMSI) for support for visits to SAMSI, where this project originated. Loredo's effort was additionally supported by NSF grant AST-1312903.}}\hspace{.2cm}\\
     Department of Physics of Complex Systems,\\
@@ -172,13 +179,14 @@ Hierarchical Bayesian models, Metropolis-within-Gibbs sampling, parallel computi
 %\enote{Add material here for Brandon's dust SED example if desired; we should probably try to save this for the A\&C version.}
 %===============================================================================
 
-% These probably should be merged:
+% These perhaps should be merged:
 \input{LumFuncA}
+%\input{TEMP}
 \input{LumFuncB}
 
 \input{Summary}
 
-\input{Supp}
+% \input{Supp}
 
 \bibliographystyle{agsm}
 
