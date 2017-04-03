@@ -131,8 +131,10 @@ where $I$ is an identity matrix.
 The solution for $S_{n}$ is unique as it is the Cholesky factor of the right hand side.
 \end{enumerate}
 CUDAHM implements these steps on the GPU, via ``kernel'' code (code executed on a GPU) written in the CUDA language and taking advantage of optimized CUDA library functions (e.g., for random number generation and linear algebra).
-The population sampling step in the MWG algorithm, as specified in Eq.~\ref{eq:theta_sampling}, is executed on the host CPU, using code written in standard \Cpp.
-\enote{Are some parts of this step done on the GPU?}
+For the population sampling step in the MWG algorithm, as specified in Eq.~\ref{eq:theta_sampling}, parameter updates are computed on the host CPU, using code written in standard \Cpp, but with the log-posterior calculation (using the updated population parameters) executed on the GPU.
+
+
+%\enote{Are some parts of this step done on the GPU?}
 
 %\enote{Provide some further details about the CUDAHM architecture, e.g., how users must structure their code, classes/structures available for passing information to/from the GPU, how random number generation is handled, etc..}
 
