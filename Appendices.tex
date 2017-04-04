@@ -1,0 +1,107 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx,psfrag,epsf}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumerate}
+\usepackage{natbib}
+\usepackage{dcolumn}
+
+\usepackage{color}
+\usepackage{url}
+% \usepackage[strings]{underscore}  % to handle _ in BibTeX URLs/DOIs; but messes up fig paths
+
+%\pdfminorversion=4
+% NOTE: To produce blinded version, replace "0" with "1" below.
+\newcommand{\blind}{0}
+
+% DON'T change margins - should be 1 inch all around.
+\addtolength{\oddsidemargin}{-.5in}%
+\addtolength{\evensidemargin}{-.5in}%
+\addtolength{\textwidth}{1in}%
+\addtolength{\textheight}{1.3in}%
+\addtolength{\topmargin}{-.8in}%
+
+%To reset the counters at the start of each section and prefix the numbers by the section number
+%(Based on: http://en.wikibooks.org/wiki/LaTeX/Tips_and_Tricks#Grouping_Figure.2FEquation_Numbering_by_Section)
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+\DeclareMathOperator\erf{erf}
+
+\def\sharedaffiliation{
+\end{tabular} \begin{tabular}{c}}
+
+\newcommand{\missingref}{\textcolor{red}{REF}}
+\newcommand{\fix}[1]{\textcolor{red}{#1}}
+\newcommand{\dd}{\textrm{d}}
+% From the C++ FAQ:
+\newcommand{\Cpp}{C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\tiny\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\tiny\bf +}}
+
+% Do NOT hyphenate all-caps words:
+%\uchyph=0
+\hyphenation{CUDA CUDAHM}
+
+
+\newcolumntype{d}[1]{D{.}{.}{#1}} \newcolumntype{t}[1]{D{-}{\times}{#1}}
+
+\newcommand{\assm}{\,|\,}
+\newcommand{\mlike}{\ell}
+\newcommand{\ppar}{\theta}  % pop'n parameters
+\newcommand{\obsv}{\mathcal{O}}  % observables
+\newcommand{\psivec}{\boldsymbol{\psi}}
+\newcommand{\Dvec}{\boldsymbol{D}}
+\newcommand{\lfunc}{\phi}  % or \Phi or \varphi or...
+\newcommand{\clfunc}{\Phi}
+\newcommand{\lpdf}{f}
+\newcommand{\lcdf}{F}
+\newcommand{\rhopar}{\boldsymbol{\zeta}}
+\newcommand{\dtxns}{\mathcal{D}}
+\newcommand{\Fth}{F_{\rm th}}
+\newcommand{\Fhat}{\hat{F}}
+\newcommand{\Ffid}{F_{\rm fid}}
+\newcommand{\rmax}{r_{\rm max}}
+\newcommand{\effic}{\eta}
+\newcommand{\aeffic}{\overline{\eta}}
+\newcommand{\like}{\mathcal{L}}
+\newcommand{\epdf}{\mu}
+\newcommand{\Lsol}{L_\odot}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ONLY NEEDED FOR DRAFTS (delete or comment for submission):
+
+% Macro for an "editorial note"; uncomment the 2nd definition to
+% produce a version without notes (put it in main doc if desired).
+\newcommand\enote[1]{{$\bullet\bullet\bullet$}{\sl [#1]}{$\bullet\bullet\bullet$}}
+%\renewcommand\enote[1]{\relax}
+
+% Marginal note (just a redef of \marginpar or \marginparodd).
+% Uncomment the 2nd definition to produce a version without notes (put it 
+% in main doc if desired).
+% Could use \footnotesize for a bigger font.
+% The \hspace enables hyphenation of the 1st word.
+\setlength{\marginparwidth}{.85in}
+\newcommand\mnote[1]{\-\marginpar[\raggedleft\scriptsize\hspace*{0pt}#1]%
+{\raggedright\scriptsize\hspace*{0pt}#1}}
+%\renewcommand\mnote[1]{\relax}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%===============================================================================
+\begin{document}
+
+
+\section*{Appendix A:\\Thinned latent marked point process likelihood function}
+
+BLAH
+
+
+\section*{Appendix B:\\Truncated break-by-one power law luminosity function}
+
+BLAH
+
+\end{document}
