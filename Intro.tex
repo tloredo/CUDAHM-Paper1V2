@@ -6,12 +6,12 @@ Bayesian inference with graphical models has rapidly grown in popularity and sop
 The work we report here focuses on models with classic, simple graphical structures---directed acyclic graphs (DAGs) that typically have a single plate, i.e., a single level of replication of random variables at the lower level of a hierarchical model.
 Our work aims to extend the range of application of Bayesian graphical modeling in the direction of increased dataset size, rather than in the direction of increased graphical complexity.
 
-We are motivated by measurement error problems in astronomy: density estimation with measurement error (density deconvolution, or demixing, often of a \emph{conditional} density), and linear and nonlinear regression with measurement errors in both predictors and response.
+We are motivated by univariate and multivariate measurement error problems in astronomy: density estimation with measurement error (density deconvolution, or demixing, often of a \emph{conditional} density), and linear and nonlinear regression with measurement errors in both predictors and response.
 Hierarchical Bayesian modeling is well-suited to such problems, but is relatively new in astronomy (see \citealt{kelly-measurement2012} and \citealt{loredo2013survey} for recent surveys).
 Although some recent astrostatistical research develops models with rich graphical structure, most astronomers are unfamiliar with hierarchical modeling, and models with simple graphical structure can provide new capability in many areas of astronomy, including basic two-level hierarchical models.%
 \footnote{We follow the convention of naming hierarchical DAGs by the number of levels with uncertain nodes, e.g., the number of open nodes in Fig.~\ref{fig:DAG-2Level}, which depicts a model with three levels of random variables, but with the data variables (bottom level) known, i.e., to be conditioned on.}
 But dataset size can be an obstacle to use of such models.
-Large-scale, automated surveys are providing astronomers with increasingly large datasets for demographic studies of cosmic populations (e.g., categories of stars, galaxies, and planets).
+Large-scale, automated astronomical surveys are providing astronomers with increasingly large datasets for demographic studies of cosmic populations (e.g., categories of stars, galaxies, planets, and minor planets).
 Current and emerging surveys are providing measurements for populations with sizes ranging from tens of thousands to $10^8$ or even larger.
 For datasets of these scales, exploration or integration over the latent variables specifying imprecisely measured characteristics of objects in a population can be prohibitive, even for simple models with univariate member characteristics.
 Yet as population size grows, it becomes increasingly important to account for uncertainty in such latent variables.
@@ -20,10 +20,10 @@ Single-plate hierarchical models can account for measurement error in many astro
 
 %Section~\ref{sec:app_models_methods} describes the applied models and methods in general.
 
-In the following section (Sec.~\ref{sec:design}), we describe the design of the CUDAHM framework, which is motivated by a common computational structure underlying example hierarchical models arising in measurement error problems in astronomy. 
+In the following section we describe the design of the CUDAHM framework, which is motivated by a common computational structure underlying example hierarchical models arising in measurement error problems in astronomy. 
 %\enote{Perhaps add a brief section (\S~3) treating Brandon's nonlinear regression with measurement error problem; perhaps he'd be willing to write it; a very brief summary of it is in \S~2 and may suffice, with Brandon's example presented in the followup A\&C paper.}
-In Sec.~\ref{sec:lum_func}, we describe a common astronomical data analysis problem: inferring the luminosity distribution of a class of objects from distance and flux observations of a sample subject to selection effects and measurement error.
+In Sec.~\ref{sec:lum_func}, we describe a common astronomical data analysis problem: inferring the luminosity distribution of a class of objects from distance and flux observations of a sample subject to both measurement error and selection effects.
 Such problems may be modeled using latent, thinned marked point processes observed with measurement error; we show that the resulting likelihood function can be cast in a form mirroring the computational structure of single-plate graphical models, enabling implementation with CUDAHM.
-We present tests of such an implementation, using simulated data, in Sec.~\ref{sec:app_on_sim_data}.
-Sec.~\ref{sec:summary} provides a summary and plans for future work.
-In the supplementary material, Sec.~\ref{sec:comp_mu_theta} presents an approximation technique for the computation of an integral appearing in the luminosity function example.
+We present tests of such an implementation, using simulated data, in Sec.~\ref{sec:lum_func_sim}.
+Sec.~\ref{sec:discussion} provides a summary and describes plans for future work.
+The supplementary material includes a derivation of the likelihood function for thinned latent point process models, and a description of the flexible parametric luminosity function used for the simulation study.

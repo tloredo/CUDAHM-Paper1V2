@@ -9,17 +9,16 @@
 Suppose we observe $N$ members of a large population, with the observed members indexed by $i=1$ to $N$.
 Each object (member) has a property or properties $\psi_i$ (a vector in multiple-property cases); we are interested in estimating the collection of properties, $\{\psi_i\}$, or their distribution, but cannot measure every component of $\psi_i$ with high precision.
 Instead, for each object, we have observed data, $D_i$, that provide information about $\psi_i$.
-In the following, we sometimes use bold symbols to refer to quantities collectively, e.g., $\psivec \equiv \{\psi_i\}$, and $\Dvec \equiv \{D_i\}$.
+% In the following, we sometimes use bold symbols to refer to quantities collectively, e.g., $\psivec \equiv \{\psi_i\}$, and $\Dvec \equiv \{D_i\}$.
 
-We consider problems where the nature of the observations motivates models that specify a joint sampling distribution for the data, conditional on the member properties, that factors into a product of conditionally independent \emph{member sampling distributions},%
-\footnote{For the sake of simplicity, we denote random variables and their values with the same symbol.
-Also, $p(\bullet)$ will be used to denote a probability mass function or a probability density function, depending on the type of the argument.}
+We consider problems where the nature of the observations motivates models that specify a joint sampling distribution for the data, conditional on the member properties, that factors into a product of conditionally independent \emph{member sampling distributions},
 \begin{equation}
-p(\Dvec \assm \psivec) = \prod_{i=1}^N p(D_i \assm \psi_i).
+p(\{D_i\} \assm \{\psi_i\}) = \prod_{i=1}^N p(D_i \assm \psi_i).
 \label{data-joint-member}
 \end{equation}
-We model the member properties, $\psivec$, as IID draws from a \emph{population probability density function} (PPDF), $f(\psi_i;\theta)$, with uncertain parameters, $\theta$.
-Goals of inference may include estimation of the PPDF (i.e., estimation of $\theta$), or estimation of the member properties, $\psivec$.
+(For the sake of simplicity, we denote random variables and their values with the same symbol.)
+We model the member properties, $\{\psi_i\}$, as IID draws from a \emph{population probability density function} (PPDF), $f(\psi_i;\theta)$, with uncertain parameters, $\theta$.
+Goals of inference may include estimation of the PPDF (i.e., estimation of $\theta$), or estimation of the member properties.
 
 Fig.~\ref{fig:DAG-2Level} shows the DAG for this type of model, both explicitly and using plate notation.  Following standard conventions, open nodes indicate uncertain random variables that are targets of inference, and shaded nodes indicate observed quantities, i.e., random variables that are uncertain a priori, but that become known after observation, and thus may be conditioned on.
 If we denote the prior PDF for the population distribution parameters by $\pi(\theta)$, this DAG indicates that the joint PDF for all random quantities in this model may be written,
@@ -48,11 +47,11 @@ In particular, any dependence on $D_i$ that does not influence the dependence on
 \end{figure}
 
 The DAG describes a generative model for all of the random variables, including the data.
-However, when the task is inference of parameters conditional on observed data (versus prediction of unobserved data), specifying member likelihood functions (rather than sampling distributions) can be a significant simplification.
+However, when the task is inference of parameters conditional on observed data (versus prediction of unobserved data), specifying member likelihood functions (rather than sampling distributions) can be significantly more straightforward than specifying sampling distributions.
 In many astronomical applications, estimation of $\psi_i$ from $D_i$ is often a nontrivial inference problem in itself.
 For example, when $\psi_i$ denotes the apparent brightness of a star and $D_i$ denotes image data, inference may involve fitting the complicated point spread function of an imaging instrument to Poisson distributed photon counts in dozens or hundreds of pixels (often marginalizing over an uncertain background or instrument calibration component).
 The resulting likelihood function for $\psi_i$ (or marginal likelihood function, when there are nuisance parameters) will often be relatively easy to summarize as a function of $\psi_i$; e.g., it may be well approximated by a Gaussian or multivariate Gaussian function (perhaps after a transformation).
-On the other hand, the sampling distribution for the data may be quite complicated and high-dimensional.
+On the other hand, the sampling distribution for the image data may be quite complicated and high-dimensional.
 In many circumstances, it may not even be well-defined.
 Weather or spacecraft conditions may affect the precision, accuracy, and even the quantity of data for a member observation; the repeated sampling distribution may be hard or even impossible to define objectively, while the likelihood function may be well-defined.
 Most astronomical surveys produce member estimates with heteroscedastic uncertainties, in the sense of producing member likelihood functions with widths that vary from object to object.
@@ -71,7 +70,7 @@ Explicitly, the steps are:
 \label{eq:theta_sampling}
 \end{align}
 The departure point for CUDAHM is recognition that, since the $\psi_i$ properties are conditionally independent in \eqref{eq:psi_sampling}, they may be sampled in parallel, making this part of the MWG algorithm suitable for a massively parallel implementation using GPUs.
-We describe such an implementation further below.
+We describe such an implementation below.
 
 Since $\psi_i$ may be a vector, the $\psi_i$ node in the DAG may admit a factorization leading to further structure within the plate in Fig.~\ref{fig:DAG-2Level}.
 Fig.~\ref{fig:DAGs} shows DAGs for several other single-plate modeling scenarios for which inference may be implemented using MWG with massively parallel sampling of member properties.
@@ -88,10 +87,8 @@ The predictor may have an a priori known prior distribution, or it may be parame
 \label{fig:DAGs}
 \end{figure}
 
-The DAG in the left panel depicts a frequently arising structure in astronomy, where the object properties $\psi_i$ consist of intrinsic \emph{characteristics} $\chi_i$ that, if known, can predict \emph{observables}, $\obsv_i$, i.e., quantities that can predict observed data.%
-\footnote{In astronomical parlance, measurements of the observables are used to ``characterize'' the object, whence our choice of the term ``characteristics'' here.
-We reserve the term for properties intrinsic to the source, i.e., not depending on observer-referred quantities such as distance.
-E.g., luminosity is a characteristic; flux (brightness at the telescope) is an observable.}
+The DAG in the left panel depicts a frequently arising structure in astronomy, where the object properties $\psi_i$ consist of intrinsic \emph{characteristics} $\chi_i$ that, if known, could predict \emph{observables}, $\obsv_i$, i.e., quantities that directly specify probability distributions for observed data.
+(This terminology reflects astronomical parlance, where measurements of observables are used to ``characterize'' an object.)
 An important example is inference of \emph{number-size distributions} (also known as number counts or $\log N$--$\log S$ distributions).
 Here the object characteristics are distance, $r_i$, and luminosity, $L_i$ (amount of energy emitted per unit time).
 The observable is flux (rate of energy flow per unit area normal to the line of sight, per unit time, at the telescope), $F_i$, related to the characteristics via the inverse-square law, $F_i = L_i/(4\pi r_i^2)$ (or its cosmological generalization).
@@ -104,10 +101,11 @@ We treat a more complicated version of this problem below, where the object samp
 
 As a final example, the DAG in the right panel depicts conditional density estimation with measurement error (i.e., uncertainty in the predictors), with a classical measurement error structure (data distributions conditional on latent predictor values).
 A wide variety of astronomical data analysis problems have this structure.
-\cite{K+12-DustSEDs} describes a noteworthy example studying how the spectrum of infrared emission from heated interstellar dust depends on properties of the dust grains; this is one of the specific problems motivating CUDAHM.
+\cite{K+12-DustSEDs} describes a noteworthy example studying how the spectrum of infrared emission from heated interstellar dust depends on properties of the dust grains.
+This strongly nonlinear measurement error problem is one of the specific problems motivating CUDAHM.
 Earlier studies, based on maximum likelihood estimates of dust properties (ignoring measurement error), found a surprising negative correlation between dust temperature and a spectral index parameter indicating how the dust properties tilt the infrared spectrum away from a black body spectrum.
 Accounting for measurement error \emph{reversed the sign} of the inferred correlation, reconciling it with some theoretical models.
-\cite{K+12-DustSEDs} analyzed measurements from $\sim 10^4$ dust regions; CUDAHM dramatically accelerates the calculations and makes such studies feasible with 10 to 100 times larger samples.
+\cite{K+12-DustSEDs} analyzed measurements from $\sim\!10^4$ dust regions; CUDAHM dramatically accelerates the calculations and makes such studies feasible with 10 to 100 times larger samples.
 
 %-------------------------------------------------------------------------------
 \subsection{CUDAHM architecture}
@@ -128,31 +126,37 @@ Each RAM iteration cycles through the following steps:
 S_{n}S_{n}^{T}=S_{n-1}\left(I+\eta_{n}(\alpha_{n}-\alpha_{*})\frac{U_{n}U_{n}^{T}}{\parallel U_{n}\parallel^{2}}\right)S_{n-1}^{T}
 \end{equation}
 where $I$ is an identity matrix.
-The solution for $S_{n}$ is unique as it is the Cholesky factor of the right hand side.
+The solution for $S_{n}$ is unique as it is the left Cholesky factor of the right hand side.
 \end{enumerate}
 CUDAHM implements these steps on the GPU, via ``kernel'' code (code executed on a GPU) written in the CUDA language and taking advantage of optimized CUDA library functions (e.g., for random number generation and linear algebra).
 For the population sampling step in the MWG algorithm, as specified in Eq.~\ref{eq:theta_sampling}, parameter updates are computed on the host CPU, using code written in standard \Cpp, but with the log-posterior calculation (using the updated population parameters) executed on the GPU.
 
 
-%\enote{Are some parts of this step done on the GPU?}
 
-%\enote{Provide some further details about the CUDAHM architecture, e.g., how users must structure their code, classes/structures available for passing information to/from the GPU, how random number generation is handled, etc..}
+\enote{We need to provide a link to the main CUDAHM repo here.}
 
-\enote{New text from Janos below; this needs some massaging; we also need to provide a link to the main CUDAHM repo here:}
+\enote{Should we mention \texttt{Thrust} here?}
 
-CUDAHM enables one to easily and rapidly construct an MCMC sampler for a simple hierarchical model, requiring the user to supply only a minimimal amount of CUDA code. 
-%CUDAHM assumes that a set of observed data $\{D_i\}$ are available for a sample of objects, and that these measurements are related to an unobserved set of member properties. This framework can simultaneously sample the values of these properties and the population parameters in two steps as it is mentioned earlier. The first step (2.4) is done in parallel for each object on the GPU, while the proposals for second step (2.5) are generated on the CPU, but the calculations are performed on the GPU.
-There are four main classes in CUDAHM that users may need to use directly:
-\begin{itemize}
-\item \texttt{DataAugmentation}: This class controls the calculations involving the member properties.
-\item \texttt{PopulationPar}: This class controls the calculations involving the population parameters.
-\item \texttt{GibbsSampler}: This class runs the MWG sampler.
-\item \texttt{GibbsSamplerWithCompactMemoryUsage}: This class also runs a MWG sampler, but with more efficient use of memory. It opens an output file stream (which has a buffer) and writes samples out on the fly.
-\end{itemize}
+CUDAHM enables one to easily and rapidly construct an MCMC sampler for a simple hierarchical model, requiring the user to supply only a minimimal amount of CUDA code.
+A template file in the distribution, \texttt{cudahm\_blueprint.cu}, contains a heavily commented example application that users may copy and customize.
+Here we briefly highlight key elements of the application programming interface.
 
-The simplest use case involves only instantiating the \texttt{GibbsSampler} class, since this will internally construct \texttt{DataAugmentation} and \texttt{PopulationPar} objects, using reasonable default algorithms.
-However, if one wants to subclass the \texttt{DataAugmentation} or \texttt{PopulationPar} classes, to customize algorithms to the problem, or to generalize the framework, then pointers to the instances of these classes must be provided to the \texttt{GibbsSampler} constructor.
-In general this is only needed if one wants to override the default methods for setting the initial values, or if one wants to override the default prior on the population parameters (which is an uninformative uniform distribution).
+For basic applications, the user must define two functions, instantiate a single class that manages the computations, and create a configuration file read by the compiled application that specifies parameters defining an MCMC run.
+The functions compute probabilities needed by the two steps in the MWG algorithm.
+One computes the logarithm of the probability density for the measurements given the member properties for each object in the sample (the product of the $\mlike(\cdot)$ member likelihood functions).
+The second computes the logarithm of the probability density for the member properties given the parent population parameters (the product of $f(\cdot)$ population distribution factors).
+Both functions execute on the GPU and must be written as CUDA kernels (i.e., using the CUDA extensions to the \texttt{C} language).
+
+To manage the computations, the user must instantiate one of two classes.
+A \texttt{GibbsSampler} instance runs the MWG algorithm, storing all samples in memory; the user can write out the samples, or a subset, as needed upon completion.
+Alternatively, a \texttt{GibbsSamplerWithCompactMemoryUsage} instance runs the algorithm, but with more efficient use of memory; it opens an output file stream (which has a buffer) and writes samples out on the fly.
+
+Internally, the sampler classes instantiate two classes that users may wish to customize (by subclassing) for advanced use cases (in which case pointers to the subclasses must be provided to the sampler's constructor).
+The \texttt{DataAugmentation} class controls calculations involving the member properties.
+The \texttt{PopulationPar} class controls calculations involving the population parameters.
+Users may wish to subclass these classes in order to customize one or both steps of the MWG algorithm.
+For example, evaluation of the prior for population parameters occurs in a \texttt{PopulationPar} instance, which implements a uniform prior as a default choice.
+To override this default prior, the \texttt{PopulationPar} class should be subclassed.
 
 We note the CUDAHM default methods assume \emph{all} member properties are uncertain; kernel functions that are used for updating member properties and the population parameters on the GPU assume all member properties may change in each MWG cycle.
 This is important to consider for problems where the object properties contain precisely measurable predictors (e.g., covariates for conditional density estimation in the manner of the middle DAG in Fig.~\ref{fig:DAGs}), which should be held fixed over the course of posterior simulation.
@@ -160,6 +164,3 @@ When this is the case, the user should override the default methods.
 The \texttt{lum\_func} implementation, which is related to the luminosity function example case, provides concrete guidance on this issue.
 We are exploring internal architectural changes to simplify the user API for handling such cases.
 
-There are two functions that the user must provide: a function that computes the logarithm of the probability density of the measurements given the member properties for each object in the sample, and a function that computes the logarithm of the probability density of the member properties given the parent population parameters.
-These functions execute on the GPU and must be written in CUDA.
-The file \texttt{cudahm\_blueprint.cu} under the \texttt{cudahm} directory contains a blueprint with documentation that the user may use when constructing their own MCMC sampler.
