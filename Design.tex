@@ -132,10 +132,8 @@ CUDAHM implements these steps on the GPU, via ``kernel'' code (code executed on 
 For the population sampling step in the MWG algorithm, as specified in Eq.~\ref{eq:theta_sampling}, parameter updates are computed on the host CPU, using code written in standard \Cpp, but with the log-posterior calculation (using the updated population parameters) executed on the GPU.
 
 
-
-\enote{We need to provide a link to the main CUDAHM repo here.}
-
-\enote{Should we mention \texttt{Thrust} here?}
+% *** Put this in the README
+% CUDAHM uses NVIDIA's \Cpp\ \texttt{Thrust} library for allocating storage on the host CPU and GPU.
 
 CUDAHM enables one to easily and rapidly construct an MCMC sampler for a simple hierarchical model, requiring the user to supply only a minimimal amount of CUDA code.
 A template file in the distribution, \texttt{cudahm\_blueprint.cu}, contains a heavily commented example application that users may copy and customize.
@@ -164,3 +162,8 @@ When this is the case, the user should override the default methods.
 The \texttt{lum\_func} implementation, which is related to the luminosity function example case, provides concrete guidance on this issue.
 We are exploring internal architectural changes to simplify the user API for handling such cases.
 
+% \enote{We need to provide a link to the main CUDAHM repo here.}
+
+% *** Provide a license for CUDAHM.
+
+CUDAHM is open-source software maintained on GitHub at \url{https://github.com/brandonckelly/CUDAHM}.
