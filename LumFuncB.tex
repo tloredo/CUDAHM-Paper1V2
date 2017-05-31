@@ -12,8 +12,47 @@ As a result, galaxies with the same bolometric (full-spectrum) luminosity and di
 A full analysis would incorporate data from multiple bands.
 For the study described here, we assume the simulated galaxies have the same spectra, or that the catalog estimates have been adjusted for spectral diversity.
 
-\subsection{Simulation setup: population parameters and priors}
+%................................................................................
+\subsection{Simulation setup: population distribution and priors}
 \label{sec:simsetup-popn}
+
+For our simulation study, we adopt a \emph{truncated break-by-one} (BB1) luminosity function that has a smoothly broken power law behavior below a characteristic luminosity scale, and an exponential cutoff (i.e., smooth truncation) for larger luminosities.
+The astrophysically relevant regime has a monotonically declining PDF, i.e., low-luminosity power law dependence with a negative exponent.
+It may be seen as a generalization of the gamma distribution, and of a  model popular in astronomy called the Schecter function.
+The motivation for the BB1 model, and some detailed properties, are presented in Appendix~B.
+  
+Specifically, the BB1 model has a luminosity PDF with three parameters: a mid-luminosity power law index, $\beta$, and two parameters defining the mid-luminosity range, $(l, u)$, with $l < u$ and  $u$ playing the role of $L_*$ in the Schecter function, and the power law index smoothly breaking to $\beta+1$ as $L$ decreases below $l$.
+The BB1 luminosity PDF has following functional form:
+\begin{equation}
+\label{eq:lumPDF} 
+\lpdf(L ; \theta) = 
+  \frac{C(\beta,u,l)}{u}\left(1-e^{-L/l}\right) \left(\frac{L}{u}\right)^{\beta} e^{-L/u},
+\end{equation}
+where the normalization cuminonstant $C(\theta)$ is given in Appendix~B.
+Note that as $l\rightarrow 0$, the BB1 distribution becomes a gamma distribution (if $\beta > -1$).
+%Also, in our computational implementation, the condition $\beta=-1$ of the first case is $-1.001<\beta<-0.999$.
+We designed the BB1 distribution to have smooth power law break behavior at low $L$, yet also have an analytical normalization constant;
+it is proper for $\beta > -2$.
+It can also be sampled from using a straightforward modification of a widely-used algorithm for sampling from the gamma distribution (\citealt{ahrens_computer_1974}).
+These properties make it useful for simulation experiments.
+
+% We define a BB1 luminosity function by multiplying the BB1 luminosity distribution by the galaxy spatial number density, which is simply a constant, $n$, for a homogeneous population.
+
+Fig.~\ref{fig:lumfunc} shows an example BB1 luminosity PDF, with $\beta = 1.5$, $(l,u) = (1\times 10^{8}, 1\times 10^{10})$ in solar luminosity ($L_\odot$) units; it is plotted both with $\log$-linear axes, and with $\log$-$\log$ axes, where the varying power law behavior is evident.
+
+\begin{figure}
+	\begin{subfigure}[c]{0.45\textwidth}
+		\includegraphics{fig/lumfunc_loglin}
+		\caption{}
+	\end{subfigure}
+	\begin{subfigure}[c]{0.45\textwidth}
+		\includegraphics{fig/lumfunc_loglog}
+		\caption{}
+	\end{subfigure}
+	\caption{Example BB1 truncated broken power law PDF, on a log-linear scale (a) and on log-log scale (b), with parameters $(l,u) = (5\times 10^{10}, 5\times 10^{12})$ in dimensionless units, and $\beta = -1.5$.
+	In Panel~b the blue verticals show the lower limit $l$ and upper limit $u$ of the region where the power law slope is $\approx\beta$.}
+	\label{fig:lumfunc}
+\end{figure}
 
 We simulate observations of a population described by the BB1 model, with parameters chosen so that galaxies with $L>l$ have a distribution similar to that found in the analysis by Blanton et al. (\citealt{blanton2003galaxy}, B03) of $\approx 150,000$ galaxies with spectroscopic redshifts observed in the Sloan Digital Sky Survey (SDSS).
 We set $u = 1\times 10^{10} L_\odot$ (where $L_\odot$ denotes the solar luminosity; this is approximately equal to the B03 value of $L_*$ in a Schecter function fit), $\beta = -1.5$ (a bit steeper than the B03 value), and $l= 1\times 10^{8} L_\odot$, corresponding to the lowest luminosities studied by B03.
@@ -26,7 +65,8 @@ For the detection criteria we adopt (see below), this maximum distance is such t
 
 % suppression factor  $e^{-20} \sim 2\times 10^{-9}$
 
-\enote{Janos also truncated below $l$; is this necessary?}
+% This appears to be an implementation detail: don't bother sampling L's you know you'll reject
+% \enote{Janos also truncated below $l$; is this necessary?}
 
 The upper luminosity scale, $u$, and maximum distance, $\rmax$, together define a fiducial flux value,
 \begin{equation}\label{eq:Ffid}
@@ -46,16 +86,13 @@ Check the $\rmax$ value and make sure it corresponds to the flux limit and lumin
 Now we consider the choice of prior for the population parameters.
 For $\beta$, we adopt a prior that is flat with respect to the angle in $\log$-$\log$ space.
 This choice has the virtue of not putting a lot of prior probability on the steep slope range, which a flat prior on $\beta$ would do.
-Denoting the angle by $\varphi$, if we adopt a prior PDF of $h(\varphi)$ on $\varphi$, the prior on $\beta = \tan\varphi$ is
-\begin{equation}
-	p(\beta) = \frac{h(\varphi)}{1 + \beta^2}.
-\end{equation}
+Denoting the angle by $\varphi$, if we adopt a prior PDF of $g(\varphi)$ on $\varphi$, the prior on $\beta = \tan\varphi$ is $p(\beta) = g(\varphi)/(1 + \beta^2)$.
 For a flat $\varphi$ prior between two cut-offs $\varphi_L$ and $\varphi_U$,
 \begin{equation}
 	p(\beta) = \frac{1}{\varphi_U - \varphi_L} \cdot \frac{1}{1 + \beta^2}.
 \end{equation}
 This is a truncated Cauchy distribution.
-The BB2 distribution requires $\beta > -2$, corresponding to $\varphi_L = -1.107$.
+The BB1 distribution requires $\beta > -2$, corresponding to $\varphi_L = -1.107$.
 If we require Eq.~\ref{eq:lumPDF} to be decreasing, the upper limit becomes $\beta < 0$, corresponding to $\varphi_U = 0$.
 Thus, the prior on $\beta$ is
 \begin{equation}
@@ -69,6 +106,7 @@ Instead, we simply use a flat prior on $l$.
 Hence, the overall prior will be \begin{equation}\label{eq:popParsPriorPDF} p(\beta, l, u) \propto \frac{l}{u \cdot (1 + \beta^2)} \quad\quad\quad \textrm{for} -2 < \beta < 0, l < u.
 \end{equation}
 
+%................................................................................
 \subsection{Simulation setup: detection and measurement}
 \label{sec:simsetup-data}
 
@@ -113,24 +151,25 @@ For our simulations of catalog data, we use normal sampling distributions for es
 where $\sigma_0$ characterizes the noise contributions from backgrounds and detector electronics, and $\alpha$ characterizes how Poisson fluctuations in the number of detected photons influence $\Fhat_i$, relative to the flux-independent noise sources.
 For an object with simulated best-fit flux $\Fhat_i$, we use a member likelihood function that is a Gaussian function with mode at $\Fhat_i$ and standard deviation parameter
 \begin{equation}
-\hat{\sigma}_i(\Fhat)
+\hat{\sigma}(\Fhat_i)
   = \sqrt{\sigma_0^2+(\alpha \Fhat_i)^2},
 \label{eq:sig-Fhat}
 \end{equation}
 using the same values for $\sigma_0$ and $\alpha$ as are used for the sampling distributions.
 Based on published simulations of existing and anticipated surveys (\citealt{F99-SDSSSim,LSSTRefDesign}), we set $\alpha = 10^{-2}$ for our simulations.
-We set $\sigma_0 = 6.4\times 10^{-10}$ and $\alpha = 10^{-2}$ and $\sigma_0 = 6.4\times 10^{-10}$~erg~cm$^{-2}$~s$^{-1}$ for our simulations.
+We set $\sigma_0 = 6.4\times 10^{-10}$ and $\alpha = 10^{-2}$ and \mbox{$\sigma_0 = 6.4\times 10^{-10}$~erg~cm$^{-2}$~s$^{-1}$} for our simulations.
 The latter value was chosen so that sources with $L=20 u$ at $r=\rmax$ are just detectable by the error-based detection criterion described below.
 
 
-\enote{Check these error/threshold params; they should correspond to Janos's values shifted to physical units.}
+% Checked by Janos 4/9/17:
+% \enote{Check these error/threshold params; they should correspond to Janos's values shifted to physical units.}
 
 For detection, we require a candidate object to have estimated flux a factor $\nu = 5$ times the measurement error.
-This corresponds to a threshold flux satisfying $\Fth = \nu \hat{\sigma}_i(\Fth)$, which gives
+This corresponds to a threshold flux satisfying $\Fth = \nu \hat{\sigma}(\Fth)$, which gives
 \begin{equation}\label{eq:Fth}
 \Fth = \frac{\nu \sigma_0}{\sqrt{1-\alpha^2}}.
 \end{equation}
-For the parameters of our simulation, this corresponds to $\Fth = X$.
+For the parameters of our simulation, this corresponds to \mbox{$\Fth \approx 3.2 \times 10^{-9}$~erg~cm$^{-2}$~s$^{-1}$}.
 The detection efficiency is the probability that the measured value, $\Fth$, for a source with true flux $F$ will be above the threshold,
 \begin{align}\label{key}
 \eta(F)
@@ -142,6 +181,7 @@ where $\Phi(\cdot)$ denotes the standard normal cumulative distribution function
 
 
 %-------------------------------------------------------------------------------
+\iffalse
 \subsection{Simulation setup}
 \label{sec:simsetup}
 
@@ -187,10 +227,10 @@ p(C | L, r) &= p(C | F) = \Pr(D>T | F)\\
 &=:\zeta(F ; T,\sigma_0)
 \label{eq:pclr}
 \end{align}
+\fi
 
 
-
-%-------------------------------------------------------------------------------
+%................................................................................
 \subsection{Case study}
 
 \enote{Tables and plots need to be adjusted here to shift to new units.}
@@ -198,15 +238,36 @@ p(C | L, r) &= p(C | F) = \Pr(D>T | F)\\
 We apply the hierarchical Bayesian model to estimate the model parameters of a simulated random sample of $100{,}000$ galaxies.
 We compare the results of the Bayesian analysis to maximum likelihood and evaluate the performance of the GPU-based implementation.
 The true values of the population parameters are listed in the first row of Tab.~\ref{tab:sum_est}.
-The value of $\sigma_0$ in Eq.~\ref{eq:error} is chosen to be $\sigma_0=1$.
-The flux limit is $T = 5.0$ and the distance limit is $r_{\max} \gtrsim 1.12 \times 10^{6}$.
 
-We executed 1.5M burn-in and the same number of live MCMC steps to sample the probability distribution of the population parameters.
-The length of the burn-in sequence was chosen by visual inspection of the autocorrelation plots.
+We executed 1.5M burn-in steps and the same number of live MCMC steps to sample the probability distribution of the population parameters.
+The length of the burn-in sequence was chosen based on visual inspection of the autocorrelation plots.
 To reduce autocorrelations in the Markov chain, $\theta$ samples were thinned and only every $150^\textnormal{th}$ sample was kept, hence the final number of samples was $10{,}000$.
 Fig.~\ref{fig:results} shows the traces, histograms and autocorrelation plots of the population parameters whereas Tab.~\ref{tab:sum_est} lists the result in a numerical format.
 
-\begin{table} \begin{center} \begin{tabular}{ l | d{12} | d{12} | d{12} | } \cline{2-4} & \beta & l & u \\ \hline \multicolumn{1}{|l|}{$\theta_\text{true}$} & -1.5 & 5.0\hphantom{000} \times 10^{10} & 5.0\hphantom{000} \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\theta_{\text{MCMC}}$} & -1.5037 & 5.0302 \times 10^{10} & 5.0000 \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\sigma_{\theta\text{,MCMC}}$} & 0.0059 & 3.3548 \times 10^{9} & 3.1806 \times 10^{10} \\ \hline \multicolumn{1}{|l|}{$\theta_{\text{MLE}}$} & -1.5564 & 7.3222 \times 10^{10} & 5.7207 \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\theta_{\text{MLE, no noise}}$} & -1.5009 & 4.9341 \times 10^{10} & 4.9819 \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\lvert \theta_{\text{true}} - \theta_{\text{MLE}} \rvert$} & >9.5525 \cdot \sigma_{\beta\text{,MCMC}} & >6.9221\cdot\sigma_{l\text{,MCMC}} & >22.6591\cdot\sigma_{u\text{,MCMC}} \\ \hline \end{tabular} \end{center} \caption{Summary of parameter estimation results.
+% This uses Janos's original dimensionless units:
+%\begin{table} \begin{center} \begin{tabular}{ l | d{12} | d{12} | d{12} | } \cline{2-4} & \beta & l & u \\ \hline \multicolumn{1}{|l|}{$\theta_\text{true}$} & -1.5 & 5.0\hphantom{000} \times 10^{10} & 5.0\hphantom{000} \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\theta_{\text{MCMC}}$} & -1.5037 & 5.0302 \times 10^{10} & 5.0000 \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\sigma_{\theta\text{,MCMC}}$} & 0.0059 & 3.3548 \times 10^{9} & 3.1806 \times 10^{10} \\ \hline \multicolumn{1}{|l|}{$\theta_{\text{MLE}}$} & -1.5564 & 7.3222 \times 10^{10} & 5.7207 \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\theta_{\text{MLE, no noise}}$} & -1.5009 & 4.9341 \times 10^{10} & 4.9819 \times 10^{12} \\ \hline \multicolumn{1}{|l|}{$\lvert \theta_{\text{true}} - \theta_{\text{MLE}} \rvert$} & >9.5525 \cdot \sigma_{\beta\text{,MCMC}} & >6.9221\cdot\sigma_{l\text{,MCMC}} & >22.6591\cdot\sigma_{u\text{,MCMC}} \\ \hline \end{tabular} \end{center}\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{ l | d{12} | d{12} | d{12} | }
+\cline{2-4}
+  & \beta & l & u \\
+\hline
+ \multicolumn{1}{|l|}{$\theta_\text{true}$} & -1.5 & 1.0\hphantom{000} \times 10^{8} & 1.0\hphantom{000} \times 10^{10} \\
+\hline
+  \multicolumn{1}{|l|}{$\theta_{\text{MCMC}}$} & -1.5036 & 0.99574 \times 10^{8} & 0.99962 \times 10^{10} \\
+\hline
+  \multicolumn{1}{|l|}{$\sigma_{\theta\text{,MCMC}}$} & 0.0059 & 6.8 \times 10^{6} & 6.36 \times 10^{7} \\
+\hline
+  \multicolumn{1}{|l|}{$\theta_{\text{MLE}}$} & -1.5564 & 1.46444 \times 10^{8} & 1.14414 \times 10^{10} \\
+\hline
+  \multicolumn{1}{|l|}{$\theta_{\text{MLE, no noise}}$} & -1.5009 & 0.98682 \times 10^{8} & 0.99638 \times 10^{10} \\
+\hline
+  \multicolumn{1}{|l|}{$\lvert \theta_{\text{true}} - \theta_{\text{MLE}} \rvert$} & >9.5226 \cdot \sigma_{\beta\text{,MCMC}} & >6.8309\cdot\sigma_{l\text{,MCMC}} & >606.4789\cdot\sigma_{u\text{,MCMC}} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Summary of parameter estimation results.
 The first row of the table indicates the true values which the simulated data was generated with.
 The second row shows the mean of the distributions coming of the Bayesian model, whereas the third row contains the standard deviation of them.
 For reference, we indicate the outcome of the ML estimatior run on the simulated data with and without noise in rows 4~and~5, respectively.
@@ -247,7 +308,7 @@ To compare the Bayesian model to ML, the last row of the table shows the differe
 	\label{fig:results}
 \end{figure}
 
-%-------------------------------------------------------------------------------
+%................................................................................
 \subsection{Performance tests}
 
 \begin{figure}
@@ -266,9 +327,11 @@ To compare the Bayesian model to ML, the last row of the table shows the differe
     \label{fig:performance_obj_vs_time}
 \end{figure}
 
+\enote{Clarify computational expense associated with normalization integral.}
+
 We used NVIDIA Tesla K40c cards for the performance tests.
-First, we executed tests without imposing a flux limit, which is a much simpler case as it does not contain the time-consuming numerical integration of Eq.~\ref{eq:mu}.
-Next, we executed the with the flux limit turned on.
+First, we executed tests without imposing a flux limit, which is a much simpler case as it does not contain the time-consuming numerical integration in the denominator of Eq.~\ref{eq:epdf}.
+Next, we performed calculations incorporating the flux limit.
 Fig.~\ref{fig:performance_iter_vs_time} shows the elapsed time as a function of iteration number (non-thinned) for different number of objects.
 The functions are trivially linear as iteration steps always take a fixed amount of time.
 More informative is Fig.~\ref{fig:performance_obj_vs_time} where we plot the elapsed time as a function of the number of objects for various numbers of iteration steps.
