@@ -372,7 +372,8 @@ The likelihood or marginal likelihood thus has a single product term, composed o
 
 
 %================================================================================
-\section*{Appendix B: Smoothly truncated \\break-by-one power law luminosity function}
+%\section*{Appendix B: Smoothly truncated \\break-by-one power law luminosity function}
+\section*{Appendix B: Exponential-cutoff \\break-by-one power law luminosity function}
 \renewcommand{\theequation}{B.\arabic{equation}}
 \renewcommand{\thefigure}{B.\arabic{figure}}
 
@@ -389,7 +390,7 @@ In this parameterization, $A$ has units of space density.
 In similar parameterizations, $A$ is often denoted $\lfunc_*$, although it neither has the units of $\lfunc$, nor is it equal to $\lfunc(L_*)$, as the symbol might misleadingly suggest.)
 The form of the Schecter function would seem to imply a luminosity distribution that is a gamma distribution (with shape parameter $\alpha = \beta - 1$).
 However, the observed samples of many populations follow Eq.~\ref{eq:schecter} with $\beta$ in the interval $(-2,-1)$, in which case the integral of $\lfunc(L;\theta)$ over $L$ is infinite, and the luminosity distribution is formally improper (with $\alpha$ outside of the allowed range for the gamma distribution).
-Low-luminosity sources are unobservable (due to noise and background, discussed below), so in practice the \emph{observable} luminosity function is truncated at low luminosities, and the impropriety is often ignored.
+Low-luminosity sources are unobservable (due to noise and background, discussed in the main text), so in practice the \emph{observable} luminosity function is truncated at low luminosities, and the impropriety is often ignored.
 But the actual luminosity function must rise less quickly with decreasing $L$ (corresponding to $\beta$ becoming larger than $-1$) or be cut off at low luminosities (corresponding to there being a minimum galaxy size).
 
 For some populations, an increase in the power law index (i.e., flattening of the logarithmic slope) is in fact observed at low observable luminosities.
@@ -404,7 +405,7 @@ The BB1 luminosity PDF has following functional form:
 \lpdf(L ; \theta) = 
   \frac{C(\beta,u,l)}{u}\left(1-e^{-L/l}\right) \left(\frac{L}{u}\right)^{\beta} e^{-L/u},
 \end{equation}
-where the normalization constant $C(\theta)$ is
+where the normalization constant $C(\beta,u,l)$ is
 \begin{equation}
 \label{eq:normLumPDF} 
 C(\beta,u,l) =
@@ -417,7 +418,7 @@ Note that as $l\rightarrow 0$, the BB1 distribution becomes a gamma distribution
 %Also, in our computational implementation, the condition $\beta=-1$ of the first case is $-1.001<\beta<-0.999$.
 We designed the BB1 distribution to have smooth power law break behavior at low $L$, yet also have an analytical normalization constant;
 it is proper for $\beta > -2$.
-It can also be sampled from using a straightforward modification of a widely-used algorithm for sampling from the gamma distribution (\citealt{ahrens_computer_1974}).
+We generate samples from the BB1 distribution using a straightforward modification of a widely-used algorithm for sampling from the gamma distribution (\citealt{ahrens_computer_1974}).
 These properties make it useful for simulation experiments.
 
 We define a BB1 luminosity function by multiplying the BB1 luminosity distribution by the galaxy spatial number density, which is simply a constant, $n$, for a homogeneous population.
