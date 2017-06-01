@@ -16,19 +16,21 @@ For the study described here, we assume the simulated galaxies have the same spe
 \subsection{Simulation setup: population distribution and priors}
 \label{sec:simsetup-popn}
 
-For our simulation study, we adopt a \emph{truncated break-by-one} (BB1) luminosity function that has a smoothly broken power law behavior below a characteristic luminosity scale, and an exponential cutoff (i.e., smooth truncation) for larger luminosities.
-The astrophysically relevant regime has a monotonically declining PDF, i.e., low-luminosity power law dependence with a negative exponent.
-It may be seen as a generalization of the gamma distribution, and of a  model popular in astronomy called the Schecter function.
+For our simulation study, we adopt an \emph{exponential-cutoff break-by-one} (BB1) luminosity function that has a smoothly broken power law behavior below a characteristic luminosity scale, and an exponential cutoff for large luminosities.
+For astrophysically relevant parameters it has a monotonically declining PDF, i.e., low-luminosity power law dependence with a negative exponent.
+It may be seen as a generalization of the gamma distribution, and of a  model popular in astronomy called the Schecter function (essentially a gamma distribution with a small shape parameter).
 The motivation for the BB1 model, and some detailed properties, are presented in Appendix~B.
   
-Specifically, the BB1 model has a luminosity PDF with three parameters: a mid-luminosity power law index, $\beta$, and two parameters defining the mid-luminosity range, $(l, u)$, with $l < u$ and  $u$ playing the role of $L_*$ in the Schecter function, and the power law index smoothly breaking to $\beta+1$ as $L$ decreases below $l$.
+The BB1 model has a luminosity PDF with $\theta$ composed of three parameters: a mid-luminosity power law index, $\beta$, and two parameters defining the mid-luminosity range, $(l, u)$, with $l < u$.
+As $L$ decreases below $l$ the power law behavior smoothly changes, with the local power law index increasing to $\beta+1$ at low luminosities.
+At high luminosities (above $u$), the PDF falls exponentially  ($u$ thus plays the role of the $L_*$ parameter known to astronomers in the Schecter function).
 The BB1 luminosity PDF has following functional form:
 \begin{equation}
 \label{eq:lumPDF} 
 \lpdf(L ; \theta) = 
   \frac{C(\beta,u,l)}{u}\left(1-e^{-L/l}\right) \left(\frac{L}{u}\right)^{\beta} e^{-L/u},
 \end{equation}
-where the normalization cuminonstant $C(\theta)$ is given in Appendix~B.
+where the normalization constant $C(\beta,u,l)$ is given in Appendix~B.
 Note that as $l\rightarrow 0$, the BB1 distribution becomes a gamma distribution (if $\beta > -1$).
 %Also, in our computational implementation, the condition $\beta=-1$ of the first case is $-1.001<\beta<-0.999$.
 We designed the BB1 distribution to have smooth power law break behavior at low $L$, yet also have an analytical normalization constant;
@@ -39,6 +41,8 @@ These properties make it useful for simulation experiments.
 % We define a BB1 luminosity function by multiplying the BB1 luminosity distribution by the galaxy spatial number density, which is simply a constant, $n$, for a homogeneous population.
 
 Fig.~\ref{fig:lumfunc} shows an example BB1 luminosity PDF, with $\beta = 1.5$, $(l,u) = (1\times 10^{8}, 1\times 10^{10})$ in solar luminosity ($L_\odot$) units; it is plotted both with $\log$-linear axes, and with $\log$-$\log$ axes, where the varying power law behavior is evident.
+
+% TODO: Switch fig to new params
 
 \begin{figure}
 	\begin{subfigure}[c]{0.45\textwidth}
@@ -79,9 +83,10 @@ The upper luminosity scale, $u$, and maximum distance, $\rmax$, together define 
 This is a convenient unit in which to express fluxes.
 Although $\Ffid$ is minuscule, modern survey telescopes would detect $\sim 10^4$ to $10^5$ photons from a source with this flux.
 
-\enote{Note the parameter value changes!  
-The plots need revision; luminosity axis labels need to be shifted by $\times 100$, and the axis label should read $\log_{10}(L/L_\odot)$.  
-Check the $\rmax$ value and make sure it corresponds to the flux limit and luminosity truncation after shifting to the new params.}
+% TODO:  Double-check this:
+%\enote{Note the parameter value changes!  
+%The plots need revision; luminosity axis labels need to be shifted by $\times 100$, and the axis label should read $\log_{10}(L/L_\odot)$.  
+%Check the $\rmax$ value and make sure it corresponds to the flux limit and luminosity truncation after shifting to the new params.}
 
 Now we consider the choice of prior for the population parameters.
 For $\beta$, we adopt a prior that is flat with respect to the angle in $\log$-$\log$ space.
@@ -233,8 +238,6 @@ p(C | L, r) &= p(C | F) = \Pr(D>T | F)\\
 %................................................................................
 \subsection{Case study}
 
-\enote{Tables and plots need to be adjusted here to shift to new units.}
-
 We apply the hierarchical Bayesian model to estimate the model parameters of a simulated random sample of $100{,}000$ galaxies.
 We compare the results of the Bayesian analysis to maximum likelihood and evaluate the performance of the GPU-based implementation.
 The true values of the population parameters are listed in the first row of Tab.~\ref{tab:sum_est}.
@@ -258,20 +261,21 @@ Fig.~\ref{fig:results} shows the traces, histograms and autocorrelation plots of
   \multicolumn{1}{|l|}{$\theta_{\text{MCMC}}$} & -1.5036 & 0.99574 \times 10^{8} & 0.99962 \times 10^{10} \\
 \hline
   \multicolumn{1}{|l|}{$\sigma_{\theta\text{,MCMC}}$} & 0.0059 & 6.8 \times 10^{6} & 6.36 \times 10^{7} \\
-\hline
-  \multicolumn{1}{|l|}{$\theta_{\text{MLE}}$} & -1.5564 & 1.46444 \times 10^{8} & 1.14414 \times 10^{10} \\
-\hline
-  \multicolumn{1}{|l|}{$\theta_{\text{MLE, no noise}}$} & -1.5009 & 0.98682 \times 10^{8} & 0.99638 \times 10^{10} \\
-\hline
-  \multicolumn{1}{|l|}{$\lvert \theta_{\text{true}} - \theta_{\text{MLE}} \rvert$} & >9.5226 \cdot \sigma_{\beta\text{,MCMC}} & >6.8309\cdot\sigma_{l\text{,MCMC}} & >606.4789\cdot\sigma_{u\text{,MCMC}} \\
+% \hline
+%  \multicolumn{1}{|l|}{$\theta_{\text{MLE}}$} & -1.5564 & 1.46444 \times 10^{8} & 1.14414 \times 10^{10} \\
+% \hline
+%  \multicolumn{1}{|l|}{$\theta_{\text{MLE, no noise}}$} & -1.5009 & 0.98682 \times 10^{8} & 0.99638 \times 10^{10} \\
+% \hline
+%  \multicolumn{1}{|l|}{$\lvert \theta_{\text{true}} - \theta_{\text{MLE}} \rvert$} & >9.5226 \cdot \sigma_{\beta\text{,MCMC}} & >6.8309\cdot\sigma_{l\text{,MCMC}} & >606.4789\cdot\sigma_{u\text{,MCMC}} \\
 \hline
 \end{tabular}
 \end{center}
 \caption{Summary of parameter estimation results.
-The first row of the table indicates the true values which the simulated data was generated with.
-The second row shows the mean of the distributions coming of the Bayesian model, whereas the third row contains the standard deviation of them.
-For reference, we indicate the outcome of the ML estimatior run on the simulated data with and without noise in rows 4~and~5, respectively.
-To compare the Bayesian model to ML, the last row of the table shows the difference between the ML estimator and the true values in terms of the standard deviation of the posterior from the Bayesian model.} \label{tab:sum_est} \end{table}
+The first row of the table indicates the true values used to simulate data.
+The second row lists posterior means, and the third row lists posterior standard deviations (both estimated using the MCMC output).
+% For reference, we indicate the outcome of the ML estimatior run on the simulated data with and without noise in rows 4~and~5, respectively.
+% To compare the Bayesian model to ML, the last row of the table shows the difference between the ML estimator and the true values in terms of the standard deviation of the posterior from the Bayesian model.
+} \label{tab:sum_est} \end{table}
 
 \begin{figure}
     \centering
@@ -304,7 +308,7 @@ To compare the Bayesian model to ML, the last row of the table shows the differe
     \begin{subfigure}{0.3\textwidth}
         \includegraphics{{fig/autocorr_upperscale}}
     \end{subfigure}    
-    \caption{Trace (upper row), histogram (middle row) and autocorrelation (lower row) plots of the three population parameters. The red vertical line overplotted the histograms show the true value of the parameter. With the exception of $\beta$, Bayesian modelling can recover model parameters with excellent accuracy.}
+    \caption{Trace (upper row), histogram (middle row) and autocorrelation (lower row) plots of MCMC posterior samples of the three population parameters; $k$ is the lag for the autocorrelation. The red vertical lines on the histograms show the true values of the parameters.}
 	\label{fig:results}
 \end{figure}
 
@@ -315,7 +319,7 @@ To compare the Bayesian model to ML, the last row of the table shows the differe
    	\begin{center}
    		\includegraphics{{fig/performance_iter_vs_time}}
    	\end{center} 
-    \caption{Runtime of the GPU code as a function of iterations for different numbers of objects, with (solid lines) and without (dashed lines) considering a flux limit of $T = 0.5$. Taking the flux limit into account results in an approximately fourfold increase of runtime.}
+    \caption{Runtime of CUDAHM code as a function of iterations for different numbers of objects, for models with (solid lines) and without (dashed lines) thinning corresponding to an observed flux threshold.}
     \label{fig:performance_iter_vs_time}
 \end{figure}
 
@@ -323,20 +327,30 @@ To compare the Bayesian model to ML, the last row of the table shows the differe
    	\begin{center}
    		\includegraphics{{fig/performance_obj_vs_time}}
    	\end{center} 
-    \caption{Runtime of the GPU code as a function of the number of objects, after a given number of iterations, with (solid lines) and without (dashed lines) considering a flux limit of $T = 0.5$. Taking the flux limit into account results in an approximately fourfold increase of runtime. On the other hand, the scaling of runtime with the number of objects is linear. This is due to the fact that fluxes are statistical independence, hence their distribution can be sampled in parallel on the GPU.}
+    \caption{Runtime of the GPU code as a function of the number of objects, after a given number of iterations, for models with (solid lines) and without (dashed lines) a detection threshold. Including a threshold results in an approximately fourfold increase of runtime. The scaling of runtime with the number of objects is approximately linear.}
     \label{fig:performance_obj_vs_time}
 \end{figure}
 
-\enote{Clarify computational expense associated with normalization integral.}
+% TODO:  Eliminate 0.5 from legend; "flux threshold"
 
-We used NVIDIA Tesla K40c cards for the performance tests.
+% TODO:  Sort out threshold computational cost.
+% *** \enote{Clarify computational expense associated with normalization integral.  It seems not correct; the normalization should be a fixed cost, independent of object number.}
+
+% TODO:  Is the linear scaling any different for a non-GPU implementation?
+
+We used NVIDIA Tesla K40c cards for performance tests.
 First, we executed tests without imposing a flux limit, which is a much simpler case as it does not contain the time-consuming numerical integration in the denominator of Eq.~\ref{eq:epdf}.
 Next, we performed calculations incorporating the flux limit.
 Fig.~\ref{fig:performance_iter_vs_time} shows the elapsed time as a function of iteration number (non-thinned) for different number of objects.
-The functions are trivially linear as iteration steps always take a fixed amount of time.
+The functions are essentially linear as iteration steps always take a fixed amount of time.
 More informative is Fig.~\ref{fig:performance_obj_vs_time} where we plot the elapsed time as a function of the number of objects for various numbers of iteration steps.
-The linear scaling of computation time with the number of objects is due to the fact that the characteristics are independent.
-As it is visible from the figures, turning on the flux limit clearly decreases the performance.
-Real galaxy catalogs contain objects on the order of $10^8$, two magnitudes more than our simulated data set.
-Extrapolating from out performance numbers, estimating the parameters of the luminosity function with $2 \times 10^5$ Markov steps would take about 2000 minutes, a bit less then one and a half days, which makes applying our method to real data feasible.
+The linear scaling of computation time with the number of objects is due to the fact that the latent characteristics are conditionally independent, so that their sampling step in the MWG algorithm does not depend in a complicated way on the size of the latent parameter space.
+As it is visible from the figures, incorporating a threshold introduces a significant (but fixed) factor in the computational expense.
 
+% Real galaxy catalogs contain objects on the order of $10^8$, two magnitudes more than our simulated data set.
+% Extrapolating from out performance numbers, estimating the parameters of the luminosity function with $2 \times 10^5$ Markov steps would take about 2000 minutes, a bit less then one and a half days, which makes applying our method to real data feasible.
+
+Current astronomical catalogs for which the type of parametric modeling presented here is appropriate range in size from hundreds to well over $10^6$ objects.
+Forthcoming catalogs will contain of order $10^8$ or more objects.
+The example presented here shows that GPU-accelerated hierarchical Bayesian inference is feasible for such catalogs.
+E.g., scaling from the BB1 example here, parametric inference with models with several parameters, for catalogs with $\sim 10^8$ objects, should be achievable with computing times of order a day with modest-sized clusters of GPUs.
