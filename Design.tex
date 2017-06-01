@@ -147,7 +147,7 @@ Both functions execute on the GPU and must be written as CUDA kernels (i.e., usi
 
 To manage the computations, the user must instantiate one of two classes.
 A \texttt{GibbsSampler} instance runs the MWG algorithm, storing all samples in memory; the user can write out the samples, or a subset, as needed upon completion.
-Alternatively, a \texttt{GibbsSamplerWithCompactMemoryUsage} instance runs the algorithm, but with more efficient use of memory; it opens an output file stream (which has a buffer) and writes samples out on the fly.
+Alternatively, a \texttt{Gibbs\-Sampler\-With\-Compact\-Memory\-Usage} instance runs the algorithm, but with more efficient use of memory; it opens an output file stream (which has a buffer) and writes samples out on the fly.
 
 Internally, the sampler classes instantiate two classes that users may wish to customize (by subclassing) for advanced use cases (in which case pointers to the subclasses must be provided to the sampler's constructor).
 The \texttt{DataAugmentation} class controls calculations involving the member properties.
@@ -162,8 +162,13 @@ When this is the case, the user should override the default methods.
 The \texttt{lum\_func} implementation, which is related to the luminosity function example case, provides concrete guidance on this issue.
 We are exploring internal architectural changes to simplify the user API for handling such cases.
 
-% \enote{We need to provide a link to the main CUDAHM repo here.}
 
-% *** Provide a license for CUDAHM.
+% TODO: Provide a license for CUDAHM.
 
-CUDAHM is open-source software maintained on GitHub at \url{https://github.com/brandonckelly/CUDAHM}.
+% TODO: Add a Makefile and README to the repo!
+
+CUDAHM is open-source software maintained on GitHub at \url{https://github.com/tloredo/CUDAHM}; the branch named \texttt{paper1} contains the version described in this paper and can be obtained via the following Git command:
+\begin{verbatim}
+git clone -b paper1 https://github.com/tloredo/CUDAHM [directory]
+\end{verbatim}
+where \verb|[directory]| denotes an optional name for the destination directory (overriding the default \verb|CUDAHM|).
