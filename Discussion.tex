@@ -2,10 +2,35 @@
 \section{Discussion}
 \label{sec:discussion}
 
-We have described a usefully general \Cpp\ framework for massively parallel implementation of simple hierarchical Bayesian models.
-We have applied this framework to estimating luminosity functions of objects measured with uncertainty, and subject to (quantified) selection effects.
-Our implementation shows linear scaling with both, the number of Markov chain iterations and the number of objects, which makes it applicable to real data sets of size up to $10^{8}$ using modest-sized clusters of GPUs.
+We have described a usefully general \Cpp\ framework for massively parallel implementation of simple hierarchical Bayesian models using an adaptive Metropolis-within-Gibbs algorithm running on a GPU, exploiting conditional independence structure to accelerate computation.
+The framework was motivated by population modeling problems in astronomy, where accounting for measurement error and selection effects is important, and straightforward to handle in a hierarchical Bayesian framework.
+Our example problem---estimating galaxy luminosity functions---is from this area, and demonstrates feasibility of hierarchical Bayesian modeling of existing and forthcoming large catalogs of properties of astronomical objects.
 
-Cubature over latent variables
+The CUDAHM implementation described here is the first step in an ongoing research program we are pursuing using GPUs to accelerate computations for hierarchical Bayesian models.
+Our current work in progress is in two directions.
+
+First, we are implementing GPU-accelerated cubature methods for inference with models that have low-dimensional latent characteristics per object.
+In the example of the previous section, there was only a single uncertain latent parameter per galaxy, the flux, or equivalently, luminosity (because the redshift was considered to be precisely measured).
+Such problems arise for modeling populations of various types of objects---galaxies, active galaxies, stars, and minor planets.
+Many galaxy catalogs report imprecise redshifts; for such populations, the latent characteristics are two-dimensional---flux and redshift---or few-dimensional, when fluxes in multiple filters are available.
+Objects observed in gamma rays or cosmic rays may have uncertain directions on the sky; this is a two-dimensional latent characteristic.
+In contrast to much hierarchical modeling in other disciplines, astronomers are typically interested in estimating population parameters, and not in estimating object parameters.
+In these settings, marginalizing over the latent characteristics could be done using quadrature and cubature algorithms rather than MCMC, producing a marginal likelihood function for the population parameters (which could be explored with a modest-dimensional MCMC algorithm).
+Conditional independence makes this marginalization embarrassingly parallel.
+In fact, the earliest work on hierarchical Bayesian demographic modeling in astronomy adopted this approach (e.g., \cite{LW98-GRBs-Iso,LW98-GRBs-Aniso}), as have some implementations of frequentist random effects models using maximum marginal likelihood methods (e.g., \cite{WT06-IRT-MaxMargLike}).
+We are developing GPU implementations of cubature-based latent parameter marginalization for commonly arising scenarios, and studying how they compare with the fully MCMC-based approach described in this paper.
+
+Our second current research direction concerns a question of principle: with large populations, simple parametric population models, while potentially capturing the salient features of the population, are unlikely to faithfully describe detailed structure in the population distribution.
+One possible response is to abandon parametric models completely, and explore nonparametric models.
+However, parametric models are often motivated by important salient physics.
+Astronomers thus may seek inferences that simultaneously recognize both the value of a parametric salient feature model, and the necessity to account for misfit in estimates of the parametric model.
+This motivates a semiparametric approach where a parametric model of interest is paired with a nonparametric discrepancy model.
+Such semiparametric models have been developed in the context of regression based on data with additive noise (e.g., with Gaussian process discrepancy or residual models).
+However, most cosmic demographic modeling is in the context of point process models.
+For such cases, we are exploring semiparametric density deconvolution where the discrepancy is modeled via a \emph{multiplicative} component.
+We are working on two appraoches.
+The first multiplies the parametric model by an explicit sieve-like model, e.g., based on Bernstein polynomials, which are easily constrained to be non-negative.
+The second multiplies the parametric model by an implicit gamma process; for a Poisson point process model, marginalization over the implicit discrepancy process produces a negative binomial marginal model.
+GPU implementations should enable application of both approaches to large datasets.
 
 Multiplicative discrepancy factors
